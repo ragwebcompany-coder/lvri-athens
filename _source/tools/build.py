@@ -1307,7 +1307,9 @@ def build_redirects():
         "$schema": "https://openapi.vercel.sh/vercel.json",
         "trailingSlash": True,
         "cleanUrls": False,
-        "redirects": [{"source": a.rstrip("/"), "destination": b, "permanent": True}
+        # trailingSlash normalises the path before redirects are matched, so the
+        # source must carry the slash too.
+        "redirects": [{"source": a, "destination": b, "permanent": True}
                       for a, b in rules],
         "headers": [
             {"source": "/assets/(img|docs)/(.*)",
