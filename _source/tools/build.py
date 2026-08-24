@@ -171,12 +171,49 @@ def plain(legacy_slug, limit=None):
     return t[:limit] if limit else t
 
 
-def meta_desc(legacy_slug, fallback):
+def meta_desc(legacy_slug, fallback=""):
+    """The legacy meta tags are 2010-era keyword stuffing, so they are only used
+    when they read like a sentence; otherwise the page's own opening is summarised."""
     rec = LEGACY.get(legacy_slug) or {}
     d = (rec.get("description") or "").strip()
+    if not d or SPAMMY.search(d) or d.count("&") > 1:
+        d = smart_desc(plain(legacy_slug, 600))
     if not d:
-        d = plain(legacy_slug, 155)
-    return html.escape(d[:158], quote=True) or fallback
+        d = fallback
+    return html.escape(d[:158], quote=True)
+
+
+SPAMMY = re.compile(r"Τηλ\.?\s*Ραντεβού|Χαμηλό Κόστος|Προσιτ[έή]ς? Τιμ|Super |!{2,}|ΚΛΕΙΣΤΕ ΤΩΡΑ", re.I)
+
+
+def smart_desc(text, limit=155):
+    """Builds a description from whole sentences instead of a hard character cut."""
+    text = re.sub(r"\s+", " ", html.unescape(text)).strip()
+    parts = [p for p in re.split(r"(?<=[.;!?])\s+", text) if p]
+    out = ""
+    for i, part in enumerate(parts):
+        if len(out) + len(part) + 1 <= limit:
+            out = (out + " " + part).strip()
+            continue
+        # A short opener followed by a long sentence: fill the rest on a word
+        # boundary rather than shipping a two-word description.
+        if len(out) < limit * 0.55:
+            room = limit - len(out) - 2
+            tail = part[:room].rsplit(" ", 1)[0].rstrip(" ,·—-")
+            if tail:
+                out = (out + " " + tail).strip() + "…"
+        break
+    if not out:
+        out = text[:limit].rsplit(" ", 1)[0].rstrip(" ,·—-") + "…"
+    return out
+
+
+def local_desc(text, tail=" LVRI Athens, Βύρωνας — Αθήνα."):
+    """Appends the locality to a meta description when there is room for it."""
+    text = text.rstrip()
+    if "Βύρων" in text or "Αθήν" in text or len(text) + len(tail) > 158:
+        return text
+    return text + tail
 
 
 def write(path, markup):
@@ -197,6 +234,111 @@ def page(*, path, title, desc, depth, body, active="", jsonld=None, lang="el",
               + f'\n<script src="{rel(depth)}assets/js/lvri.js" defer></script>\n</body>\n</html>\n')
     write(path + "index.html" if path.endswith("/") or path == "" else path, markup)
     return markup
+
+
+# ── Structured data ─────────────────────────────────────────────────────────
+CLINIC_ID = SITE["domain"] + "/#clinic"
+DOCTOR_ID = SITE["domain"] + "/#dr-myrillas"
+
+def _address():
+    return {"@type": "PostalAddress",
+            "streetAddress": "Καραολή & Δημητρίου 41",
+            "addressLocality": SITE["locality"],
+            "addressRegion": SITE["region"],
+            "postalCode": SITE["postcode"],
+            "addressCountry": "GR"}
+
+
+def _geo():
+    return {"@type": "GeoCoordinates", "latitude": SITE["lat"], "longitude": SITE["lng"]}
+
+
+def _area_served():
+    """The districts the clinic actually draws patients from, plus the region.
+    Declared here rather than as near-duplicate landing pages."""
+    return ([{"@type": "City", "name": a} for a in SITE["areas"]]
+            + [{"@type": "AdministrativeArea", "name": SITE["region"]},
+               {"@type": "Country", "name": "Ελλάδα"}])
+
+
+def clinic_ld():
+    return {
+        "@context": "https://schema.org",
+        "@type": ["MedicalClinic", "LocalBusiness"],
+        "@id": CLINIC_ID,
+        "name": SITE["name"],
+        "legalName": SITE["legal"],
+        "alternateName": ["LVRI Athens", "Laser Vaginal Rejuvenation Institute of Athens",
+                          "Ινστιτούτο Ανάπλασης Κόλπου Αθηνών"],
+        "description": "Κέντρο κοσμητικής γυναικολογίας και επανορθωτικής χειρουργικής "
+                       "πυελικού εδάφους στον Βύρωνα Αττικής. Ακράτεια ούρων, πρόπτωση, "
+                       "ξηρότητα κόλπου, laser πλαστική κόλπου και αιδοιοπλαστική.",
+        "url": SITE["domain"] + "/",
+        "logo": SITE["domain"] + "/assets/img/logo.png",
+        "image": [SITE["domain"] + "/assets/img/clinic-team.jpg",
+                  SITE["domain"] + "/assets/img/dr-myrillas.jpg"],
+        "telephone": "+30 210 760 9109",
+        "email": SITE["email"],
+        "foundingDate": SITE["founded"],
+        "priceRange": "€€€",
+        "currenciesAccepted": "EUR",
+        "paymentAccepted": "Μετρητά, Κάρτα",
+        "knowsLanguage": ["el", "en"],
+        "address": _address(),
+        "geo": _geo(),
+        "hasMap": SITE["map_full"],
+        "areaServed": _area_served(),
+        "medicalSpecialty": ["Gynecologic", "PlasticSurgery", "Urologic"],
+        "founder": {"@id": DOCTOR_ID},
+        "employee": {"@id": DOCTOR_ID},
+        "availableService": [
+            {"@type": "MedicalProcedure", "name": t["title"],
+             "alternateName": t["short"], "description": t["lead"],
+             "url": f"{SITE['domain']}/therapeies/{t['slug']}/"} for t in TREATMENTS],
+        "openingHoursSpecification": [
+            {"@type": "OpeningHoursSpecification",
+             "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+             "opens": "09:00", "closes": "17:00"},
+            {"@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday",
+             "opens": "09:00", "closes": "15:00"}],
+        "sameAs": [SITE["social"]["facebook"], SITE["social"]["youtube"]],
+    }
+
+
+def org_graph():
+    """Clinic + physician in one graph — the @id references resolve on every page."""
+    c, d = clinic_ld(), doctor_ld()
+    c.pop("@context", None); d.pop("@context", None)
+    return {"@context": "https://schema.org", "@graph": [c, d]}
+
+
+def doctor_ld():
+    return {
+        "@context": "https://schema.org",
+        "@type": "Physician",
+        "@id": DOCTOR_ID,
+        "name": "Dr. Κωνσταντίνος Μυρίλλας",
+        "alternateName": "Konstantinos Myrillas",
+        "honorificPrefix": "Dr.",
+        "jobTitle": "Μαιευτήρας γυναικολόγος · επιστημονικός υπεύθυνος",
+        "url": SITE["domain"] + "/dr-mirillas/",
+        "image": SITE["domain"] + "/assets/img/dr-myrillas.jpg",
+        "medicalSpecialty": ["Gynecologic", "Obstetric", "PlasticSurgery"],
+        "worksFor": {"@id": CLINIC_ID},
+        "workLocation": {"@type": "Place", "name": SITE["legal"],
+                         "address": _address(), "geo": _geo()},
+        "address": _address(),
+        "areaServed": _area_served(),
+        "knowsLanguage": ["el", "en"],
+        "alumniOf": {"@type": "CollegeOrUniversity",
+                     "name": "Ιατρική Σχολή Εθνικού και Καποδιστριακού Πανεπιστημίου Αθηνών"},
+        "memberOf": [
+            {"@type": "Organization", "name": "American College of Obstetricians and Gynecologists"},
+            {"@type": "Organization", "name": "Royal College of Obstetricians and Gynaecologists"},
+            {"@type": "Organization", "name": "European Society for Gynaecological Endoscopy (ESGE)"},
+            {"@type": "Organization", "name": "Ελληνική Λαπαροσκοπική Εταιρεία"},
+        ],
+    }
 
 
 def seo_title(text, suffix=" | LVRI Athens", cap=70):
@@ -241,7 +383,8 @@ def cta_band(depth, *, tone="navy"):
       <div class="stack" style="justify-items:stretch">
         <button class="btn btn--light btn--block" data-book-open>Ζητήστε ραντεβού</button>
         <a class="btn btn--outline-light btn--block" href="tel:{SITE['phone_href']}">{I['phone']} {SITE['phone']}</a>
-        <p class="tiny" style="color:#9aa3c8">{SITE['address']} · Δευτέρα – Παρασκευή 09:00 – 17:00</p>
+        <p class="tiny" style="color:#9aa3c8">Καραολή &amp; Δημητρίου 41, {SITE['postcode']}
+          {SITE['locality']}, {SITE['region']}</p>
       </div>
     </div>
   </div>
@@ -496,10 +639,16 @@ def build_home():
         {img("clinic-team.jpg", "Η ομάδα του LVRI Athens", 1600, 1067, 0)}
       </div>
       <div class="stack">
-        <p class="eyebrow">Η ομάδα</p>
+        <p class="eyebrow">Η ομάδα · Βύρωνας, Αθήνα</p>
         <h2>Γυναικολόγοι, πλαστικοί χειρουργοί και δερματολόγοι στο ίδιο τραπέζι.</h2>
         <p class="lede">Το γυναικείο γεννητικό σύστημα απασχολεί πολλές ειδικότητες.
           Το LVRI Athens δημιουργήθηκε για να μη χρειάζεται να τις κυνηγάτε μία-μία.</p>
+        <ul class="info-list" style="margin-block:.5rem">
+          <li>{I['pin']}<div><b>Πού θα μας βρείτε</b>
+            <a href="epikoinonia/">{SITE['address']}, {SITE['postcode']}</a></div></li>
+          <li>{I['clock']}<div><b>Ωράριο</b>
+            <span class="muted">Δευτέρα – Παρασκευή 09:00–17:00 · Σάββατο 09:00–15:00</span></div></li>
+        </ul>
         <div class="pill-row">
           <a class="chip" href="dr-mirillas/">Dr. Κωνσταντίνος Μυρίλλας</a>
           <a class="chip" href="dr-matlock/">Dr. David L. Matlock</a>
@@ -535,28 +684,14 @@ def build_home():
 
 {cta_band(d)}"""
 
-    ld = [{"@context": "https://schema.org", "@type": "MedicalClinic",
-           "@id": SITE["domain"] + "/#clinic", "name": SITE["legal"], "alternateName": SITE["name"],
-           "url": SITE["domain"] + "/", "telephone": "+30 210 7609109", "email": SITE["email"],
-           "foundingDate": SITE["founded"],
-           "image": SITE["domain"] + "/assets/img/clinic-team.jpg",
-           "medicalSpecialty": ["Gynecologic", "PlasticSurgery", "Urologic"],
-           "address": {"@type": "PostalAddress", "streetAddress": "Καραολή & Δημητρίου 41",
-                       "addressLocality": "Βύρωνας", "postalCode": SITE["postcode"],
-                       "addressRegion": "Αττική", "addressCountry": "GR"},
-           "openingHoursSpecification": [
-               {"@type": "OpeningHoursSpecification",
-                "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-                "opens": "09:00", "closes": "17:00"},
-               {"@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday",
-                "opens": "09:00", "closes": "15:00"}],
-           "sameAs": [SITE["social"]["facebook"], SITE["social"]["youtube"]]},
+    ld = [org_graph(),
           {"@context": "https://schema.org", "@type": "WebSite", "name": SITE["name"],
-           "url": SITE["domain"] + "/", "inLanguage": "el"}]
+           "url": SITE["domain"] + "/", "inLanguage": "el",
+           "publisher": {"@id": CLINIC_ID}}]
 
-    page(path="", title="LVRI Athens — Κοσμητική γυναικολογία & χειρουργική πυελικού εδάφους",
-         desc="Ακράτεια ούρων, πρόπτωση, ξηρότητα κόλπου. Laser και χειρουργικές λύσεις στην Αθήνα, "
-              "από το 2008. Ξεκινήστε από τον οδηγό συμπτωμάτων.",
+    page(path="", title="Κοσμητική γυναικολογία & πυελικό έδαφος, Αθήνα | LVRI Athens",
+         desc="Ακράτεια ούρων, πρόπτωση, ξηρότητα κόλπου. Laser πλαστική κόλπου και "
+              "αιδοιοπλαστική στον Βύρωνα Αττικής, από το 2008.",
          depth=0, body=body, jsonld=ld, alt=("en", "en/"),
          og_image="assets/img/dr-myrillas.jpg")
 
@@ -637,16 +772,28 @@ def build_condition(c):
     </div>
   </div>
 </section>"""
-    ld = [crumb_ld, {"@context": "https://schema.org", "@type": "MedicalWebPage",
-                     "name": c["title"], "inLanguage": "el",
-                     "url": f"{SITE['domain']}/pathiseis/{slug}/",
-                     "about": {"@type": "MedicalCondition", "name": c["title"]},
-                     "publisher": {"@id": SITE["domain"] + "/#clinic"}}]
+    ld = [crumb_ld, org_graph(),
+          {"@context": "https://schema.org", "@type": "MedicalWebPage",
+           "name": c["title"], "inLanguage": "el",
+           "url": f"{SITE['domain']}/pathiseis/{slug}/",
+           "specialty": "Gynecologic",
+           "lastReviewed": TODAY,
+           "reviewedBy": {"@id": DOCTOR_ID},
+           "about": {
+               "@type": "MedicalCondition",
+               "name": c["title"],
+               "description": c["lead"],
+               "possibleTreatment": [
+                   {"@type": "MedicalProcedure", "name": TREATS[t]["title"],
+                    "url": f"{SITE['domain']}/therapeies/{t}/"}
+                   for t in c["treatments"] if t in TREATS]},
+           "publisher": {"@id": CLINIC_ID},
+           "provider": {"@id": CLINIC_ID}}]
     if faq_ld:
         ld.append(faq_ld)
     page(path=f"pathiseis/{slug}/",
-         title=seo_title(f"{c['title']} — συμπτώματα, αίτια & θεραπεία"),
-         desc=meta_desc(c["legacy"], c["lead"][:150]), depth=d,
+         title=seo_title(f"{c['title']} — συμπτώματα & θεραπεία, Αθήνα"),
+         desc=local_desc(c.get("meta") or meta_desc(c["legacy"], c["lead"])), depth=d,
          body=head_block + doc_layout(d, body, aside_cta(d)) + faq_html
               + related_strip(d, c["treatments"]) + cta_band(d),
          jsonld=ld)
@@ -682,15 +829,24 @@ def build_treatment(t):
 <section class="creds">
   <div class="wrap"><ul class="creds__list" style="grid-template-columns:repeat(2,1fr)">{facts_html}</ul></div>
 </section>"""
-    ld = [crumb_ld, {"@context": "https://schema.org", "@type": "MedicalProcedure",
-                     "name": t["title"], "description": t["lead"],
-                     "url": f"{SITE['domain']}/therapeies/{slug}/",
-                     "provider": {"@id": SITE["domain"] + "/#clinic"}}]
+    ld = [crumb_ld, org_graph(),
+          {"@context": "https://schema.org", "@type": "MedicalProcedure",
+           "name": t["title"], "alternateName": t["short"], "description": t["lead"],
+           "url": f"{SITE['domain']}/therapeies/{slug}/",
+           "procedureType": ("https://schema.org/NoninvasiveProcedure"
+                             if t["invasive"] == "non" else "https://schema.org/SurgicalProcedure"),
+           "bodyLocation": "Πυελικό έδαφος",
+           "howPerformed": m["setting"],
+           "preparation": m["anesthesia"],
+           "followup": m["recovery"],
+           "provider": {"@id": CLINIC_ID},
+           "performerType": "Μαιευτήρας γυναικολόγος",
+           "availableService": {"@type": "Service", "areaServed": _area_served()}}]
     if faq_ld:
         ld.append(faq_ld)
     page(path=f"therapeies/{slug}/",
-         title=seo_title(f"{t['title']} — {t['short']}"),
-         desc=meta_desc(t["legacy"], t["lead"][:150]), depth=d,
+         title=seo_title(f"{t['title']} στην Αθήνα — {t['short']}"),
+         desc=local_desc(t.get("meta") or meta_desc(t["legacy"], t["lead"])), depth=d,
          body=head_block + doc_layout(d, body, aside_cta(d)) + faq_html + cta_band(d),
          jsonld=ld)
 
@@ -717,12 +873,13 @@ def build_article(slug, tag):
                      "headline": title, "datePublished": iso, "dateModified": iso,
                      "inLanguage": "el", "articleSection": tag,
                      "author": {"@type": "Person", "name": "Dr. Κωνσταντίνος Μυρίλλας"},
-                     "publisher": {"@id": SITE["domain"] + "/#clinic"},
+                     "publisher": {"@id": CLINIC_ID},
                      "mainEntityOfPage": f"{SITE['domain']}/arthra/{slug}/"}]
+    ld.append(org_graph())
     if faq_ld:
         ld.append(faq_ld)
     page(path=f"arthra/{slug}/", title=seo_title(title),
-         desc=meta_desc(slug, title), depth=d,
+         desc=smart_desc(plain(slug, 600)) or title, depth=d,
          body=head_block + doc_layout(d, body, aside_cta(d)) + faq_html + f"""
 <section class="section section--tight section--mist">
   <div class="wrap">
@@ -755,9 +912,9 @@ def build_conditions_hub():
 {anatomy_section(d)}
 {guide_section(d)}
 {cta_band(d)}"""
-    page(path="pathiseis/", title="Παθήσεις πυελικού εδάφους | LVRI Athens",
+    page(path="pathiseis/", title="Παθήσεις πυελικού εδάφους — Αθήνα | LVRI Athens",
          desc="Ακράτεια ούρων, πρόπτωση μήτρας, ξηρότητα κόλπου, κυστεοκήλη, ορθοκήλη. "
-              "Τι είναι, γιατί συμβαίνουν και πώς αντιμετωπίζονται.",
+              "Τι είναι, γιατί συμβαίνουν και πώς αντιμετωπίζονται στο LVRI Athens, Βύρωνας.",
          depth=d, body=body, jsonld=[crumb_ld])
 
 
@@ -782,9 +939,9 @@ def build_treatments_hub():
 <section class="section section--tight"><div class="wrap"><div class="grid grid--3">{cards}</div></div></section>
 {compare_section(d)}
 {cta_band(d)}"""
-    page(path="therapeies/", title="Θεραπείες — σύγκριση | LVRI Athens",
-         desc="Laser αναζωογόνηση, G-Shot, αιδοιοπλαστική, laser πλαστική κόλπου, χειρουργική "
-              "πυελικού εδάφους. Συγκρίνετε αναισθησία, διάρκεια και ανάρρωση.",
+    page(path="therapeies/", title="Θεραπείες κοσμητικής γυναικολογίας, Αθήνα | LVRI Athens",
+         desc="Laser αναζωογόνηση κόλπου, G-Shot, αιδοιοπλαστική, laser πλαστική κόλπου, "
+              "χειρουργική πυελικού εδάφους στην Αθήνα. Συγκρίνετε αναισθησία, διάρκεια, ανάρρωση.",
          depth=d, body=body, jsonld=[crumb_ld], active="treatments")
 
 
@@ -890,12 +1047,13 @@ def build_clinic():
   </div>
 </section>
 {cta_band(d)}"""
-    page(path="i-kliniki/", title="Η κλινική | LVRI Athens",
-         desc=meta_desc("h-kliniki", "Το LVRI Athens, κέντρο κοσμητικής γυναικολογίας στην Αθήνα."),
+    page(path="i-kliniki/", title="Η κλινική — Βύρωνας, Αθήνα | LVRI Athens",
+         desc="Το LVRI Athens ιδρύθηκε το 2008 στον Βύρωνα, μαζί με τον Dr. David Matlock. "
+              "Γυναικολόγοι, πλαστικοί χειρουργοί και δερματολόγοι στην ίδια ομάδα.",
          depth=d, body=body, jsonld=[crumb_ld], active="clinic")
 
 
-def build_doctor(slug, legacy, name, role, photo, blurb):
+def build_doctor(slug, legacy, name, role, photo, blurb, blurb_desc=""):
     d = 1
     body_html, _, _ = prose(legacy, d)
     crumb_html, crumb_ld = crumbs([(name, None)], d)
@@ -910,11 +1068,16 @@ def build_doctor(slug, legacy, name, role, photo, blurb):
 </section>
 {doc_layout(d, body_html, aside_cta(d))}
 {cta_band(d)}"""
-    ld = [crumb_ld, {"@context": "https://schema.org", "@type": "Physician", "name": name,
-                     "url": f"{SITE['domain']}/{slug}/", "medicalSpecialty": "Gynecologic",
-                     "worksFor": {"@id": SITE["domain"] + "/#clinic"}}]
-    page(path=f"{slug}/", title=f"{name} | LVRI Athens",
-         desc=meta_desc(legacy, blurb[:150]), depth=d, body=body, jsonld=ld)
+    ld = [crumb_ld, org_graph()]
+    if slug != "dr-mirillas":
+        ld.append({
+            "@context": "https://schema.org", "@type": "Physician", "name": name,
+            "url": f"{SITE['domain']}/{slug}/",
+            "medicalSpecialty": ["Gynecologic", "PlasticSurgery"],
+            "image": f"{SITE['domain']}/assets/img/{photo}",
+            "affiliation": {"@id": CLINIC_ID}})
+    page(path=f"{slug}/", title=seo_title(f"{name} — {role.split(' · ')[0]}, Αθήνα"),
+         desc=local_desc(blurb_desc), depth=d, body=body, jsonld=ld)
 
 
 def build_guide_page():
@@ -1058,7 +1221,8 @@ def build_gallery():
 </section>
 {cta_band(d)}"""
     page(path="gallery/", title="Photo & Video Gallery | LVRI Athens",
-         desc="Φωτογραφίες περιστατικών και βίντεο από το LVRI Athens.",
+         desc="Φωτογραφίες περιστατικών πριν και μετά, και βίντεο από τηλεοπτικές εκπομπές "
+              "και ιατρικά συνέδρια. LVRI Athens, Βύρωνας — Αθήνα.",
          depth=d, body=body, jsonld=[crumb_ld], active="gallery")
 
 
@@ -1068,14 +1232,50 @@ def build_contact():
                     f'border-bottom:1px solid var(--line-soft);padding:.55rem 0">'
                     f'<span>{a}</span><b style="font-weight:560">{b}</b></div>'
                     for a, b in SITE["hours"])
+    venues = "".join(f"""<div class="card">
+      <p class="card__kicker">{n}</p>
+      <h3 style="font-size:1.05rem">{a}</h3>
+      <p>{w}</p></div>""" for n, a, w in SITE["venues"])
+    areas = "".join(f'<span class="chip">{a}</span>' for a in SITE["areas"])
+
+    local_faq = [
+        ("Πού ακριβώς βρίσκεται το ιατρείο;",
+         f"<p>Στην {SITE['address']}, {SITE['postcode']}. Η Καραολή &amp; Δημητρίου είναι "
+         "ο κεντρικός δρόμος του Βύρωνα. Ο χάρτης σε αυτή τη σελίδα ανοίγει απευθείας "
+         "οδηγίες πλοήγησης.</p>"),
+        ("Από ποιες περιοχές έρχονται οι ασθενείς σας;",
+         "<p>Ο Βύρωνας συνορεύει με Καισαριανή, Παγκράτι, Υμηττό και Ηλιούπολη, οπότε "
+         "οι περισσότερες ασθενείς μας είναι από τα ανατολικά και νότια προάστια και το "
+         "κέντρο της Αθήνας. Δεχόμαστε όμως και περιστατικά από όλη την Ελλάδα και "
+         "από το εξωτερικό — αν ταξιδεύετε, πείτε το μας για να συντονίσουμε "
+         "εξέταση και θεραπεία στο ίδιο διάστημα.</p>"),
+        ("Πού γίνονται οι επεμβάσεις;",
+         "<p>Η εξέταση, οι θεραπείες με laser και οι ενέσιμες θεραπείες γίνονται στο "
+         "ιατρείο στον Βύρωνα. Οι χειρουργικές επεμβάσεις γίνονται σε νοσοκομειακό "
+         "περιβάλλον: ο Dr. Μυρίλλας διευθύνει από το 2013 το τμήμα πλαστικής κόλπου "
+         "και επανορθωτικής χειρουργικής πυέλου με laser στο μαιευτήριο ΡΕΑ.</p>"),
+        ("Χρειάζομαι ραντεβού ή μπορώ να περάσω;",
+         f"<p>Χρειάζεται ραντεβού. Καλέστε στο {SITE['phone']} ή στείλτε αίτημα από "
+         "αυτή τη σελίδα και απαντάμε την ίδια ή την επόμενη εργάσιμη.</p>"),
+        ("Τι να φέρω μαζί μου στο πρώτο ραντεβού;",
+         "<p>Ό,τι πρόσφατο έχετε: ουροδυναμικό έλεγχο, υπερηχογράφημα, εξιτήρια από "
+         "προηγούμενες επεμβάσεις στην πύελο, φαρμακευτική αγωγή που παίρνετε. "
+         "Κερδίζουμε χρόνο και αποφεύγουμε επαναλήψεις εξετάσεων.</p>"),
+        ("Μιλάτε αγγλικά;",
+         "<p>Ναι. Οι εξετάσεις και η ενημέρωση μπορούν να γίνουν στα αγγλικά — "
+         f"δείτε και τη <a href=\"{rel(d)}en/\">αγγλική έκδοση</a> του ιστότοπου.</p>"),
+    ]
+    faq_html, faq_ld = faq_block("Συχνές ερωτήσεις για την επίσκεψη", local_faq, "faq-visit")
+
     crumb_html, crumb_ld = crumbs([("Επικοινωνία", None)], d)
     body = f"""<section class="page-head">
   <div class="wrap">{crumb_html}
     <div class="sec-head sec-head--split" style="margin-bottom:0">
-      <div class="stack"><p class="eyebrow">Επικοινωνία</p>
+      <div class="stack"><p class="eyebrow">Επικοινωνία · Βύρωνας, Αθήνα</p>
         <h1>Καραολή &amp; Δημητρίου 41, Βύρωνας.</h1></div>
-      <p class="lede">Τηλεφωνήστε, γράψτε μας ή στείλτε αίτημα ραντεβού. Απαντάμε την ίδια
-        ή την επόμενη εργάσιμη.</p>
+      <p class="lede">Στον κεντρικό δρόμο του Βύρωνα, δίπλα σε Καισαριανή, Παγκράτι
+        και Υμηττό. Τηλεφωνήστε, γράψτε μας ή στείλτε αίτημα ραντεβού — απαντάμε
+        την ίδια ή την επόμενη εργάσιμη.</p>
     </div>
   </div>
 </section>
@@ -1092,11 +1292,13 @@ def build_contact():
           <li>{I['clock']}<div style="width:100%"><b>Ωράριο</b><div style="margin-top:.35rem">{hours}</div></div></li>
         </ul>
         <button class="btn btn--block" data-book-open>Ζητήστε ραντεβού</button>
+        <a class="btn btn--ghost btn--block" href="{SITE['map_full']}" target="_blank" rel="noopener">
+          {I['pin']} Οδηγίες πλοήγησης</a>
       </div>
       <div class="stack" style="justify-items:stretch">
-        <iframe class="map" loading="lazy" title="Χάρτης — LVRI Athens"
+        <iframe class="map" loading="lazy" title="Χάρτης — LVRI Athens, Καραολή &amp; Δημητρίου 41, Βύρωνας"
           referrerpolicy="no-referrer-when-downgrade"
-          src="https://www.google.com/maps?q={SITE['address'].replace(' ', '+')}&amp;output=embed"></iframe>
+          src="https://www.google.com/maps?q={SITE['lat']},{SITE['lng']}&amp;z=16&amp;output=embed"></iframe>
         <div class="note">
           <b>Πριν το ραντεβού</b>
           <span>Αν έχετε πρόσφατο ουροδυναμικό έλεγχο, υπερηχογράφημα ή χειρουργικό ιστορικό,
@@ -1106,11 +1308,59 @@ def build_contact():
     </div>
   </div>
 </section>
+
+<section class="section section--tight section--mist">
+  <div class="wrap">
+    <div class="sec-head sec-head--split">
+      <div class="stack"><p class="eyebrow">Πού θα μας βρείτε</p>
+        <h2>Δύο χώροι, ανάλογα με το τι χρειάζεστε.</h2></div>
+      <p class="lede">Η εξέταση και οι θεραπείες ιατρείου γίνονται στον Βύρωνα.
+        Οι χειρουργικές επεμβάσεις σε νοσοκομειακό περιβάλλον.</p>
+    </div>
+    <div class="grid grid--2">{venues}</div>
+  </div>
+</section>
+
+<section class="section section--tight">
+  <div class="wrap">
+    <div class="split">
+      <div class="stack">
+        <p class="eyebrow">Περιοχές</p>
+        <h2>Από πού έρχονται οι ασθενείς μας.</h2>
+        <p class="lede">Ο Βύρωνας βρίσκεται ανατολικά του κέντρου, ανάμεσα σε Καισαριανή,
+          Παγκράτι, Υμηττό και Ηλιούπολη. Δεν υπάρχει δεύτερο ιατρείο σε άλλη περιοχή —
+          όλα γίνονται εδώ.</p>
+        <div class="pill-row">{areas}</div>
+      </div>
+      <div class="stack">
+        <p class="eyebrow">Έρχεστε από μακριά;</p>
+        <h2>Συντονίζουμε εξέταση και θεραπεία στο ίδιο ταξίδι.</h2>
+        <p class="lede">Αν ταξιδεύετε από την επαρχία ή από το εξωτερικό, πείτε το μας
+          όταν κλείνετε το ραντεβού. Θα οργανώσουμε το πρόγραμμα ώστε να μη χρειαστεί
+          να έρθετε δεύτερη φορά για κάτι που μπορεί να γίνει στην ίδια επίσκεψη.</p>
+        <a class="link-more" href="{rel(d)}en/">English information</a>
+      </div>
+    </div>
+  </div>
+</section>
+{faq_html}
 {cta_band(d)}"""
-    page(path="epikoinonia/", title="Επικοινωνία & ραντεβού | LVRI Athens",
-         desc=f"LVRI Athens — {SITE['address']}. Τηλέφωνο {SITE['phone']}. "
-              "Δευτέρα – Παρασκευή 09:00 – 17:00, Σάββατο 09:00 – 15:00.",
-         depth=d, body=body, jsonld=[crumb_ld], active="contact")
+
+    place_ld = {
+        "@context": "https://schema.org", "@type": "ContactPage",
+        "name": "Επικοινωνία — LVRI Athens, Βύρωνας",
+        "url": f"{SITE['domain']}/epikoinonia/",
+        "inLanguage": "el", "about": {"@id": CLINIC_ID},
+        "mainEntity": {"@id": CLINIC_ID},
+    }
+    ld = [crumb_ld, org_graph(), place_ld]
+    if faq_ld:
+        ld.append(faq_ld)
+    page(path="epikoinonia/",
+         title="Επικοινωνία & ραντεβού — Βύρωνας, Αθήνα | LVRI Athens",
+         desc=f"LVRI Athens — {SITE['address']}, {SITE['postcode']}. Τηλέφωνο "
+              f"{SITE['phone']}. Δευτέρα – Παρασκευή 09:00–17:00, Σάββατο 09:00–15:00.",
+         depth=d, body=body, jsonld=ld, active="contact")
 
 
 def build_terms():
@@ -1126,7 +1376,8 @@ def build_terms():
 <section class="section section--tight"><div class="wrap wrap--narrow">
   <article class="prose">{body_html}</article></div></section>"""
     page(path="oroi-chrisis/", title="Όροι χρήσης & πολιτική απορρήτου | LVRI Athens",
-         desc="Όροι χρήσης και πολιτική απορρήτου του ιστότοπου του LVRI Athens.",
+         desc="Όροι χρήσης, πολιτική απορρήτου και διαχείριση προσωπικών δεδομένων "
+              "για τον ιστότοπο του LVRI Athens, Βύρωνας — Αθήνα.",
          depth=d, body=body, jsonld=[crumb_ld])
 
 
@@ -1186,7 +1437,8 @@ def en_shell(*, path, title, desc, depth, inner, crumb=None):
          alt=("el", pair) if pair is not None else None, jsonld=[{
              "@context": "https://schema.org", "@type": "MedicalWebPage",
              "name": title, "inLanguage": "en",
-             "url": f"{SITE['domain']}/{path}", "publisher": {"@id": SITE["domain"] + "/#clinic"}}])
+             "url": f"{SITE['domain']}/{path}", "publisher": {"@id": CLINIC_ID}},
+             org_graph()])
 
 
 def build_en_home():
@@ -1234,8 +1486,8 @@ def build_en_page(slug, legacy, title):
   </div>
 </section>
 {doc_layout(d, body_html)}{faq_html}"""
-    en_shell(path=f"en/{slug}/", title=seo_title(title),
-             desc=meta_desc(legacy, title), depth=d, inner=inner)
+    en_shell(path=f"en/{slug}/", title=seo_title(f"{title} — Athens, Greece"),
+             desc=smart_desc(plain(legacy, 600)) or title, depth=d, inner=inner)
 
 
 # ── Search index, sitemap, robots ───────────────────────────────────────────
@@ -1342,11 +1594,15 @@ def main():
     build_doctor("dr-mirillas", "dr-k-mirillas", "Dr. Κωνσταντίνος Μυρίλλας",
                  "Επιστημονικός υπεύθυνος", "dr-myrillas.jpg",
                  "Μαιευτήρας γυναικολόγος. Αποφοίτησε με άριστα από την Ιατρική Αθηνών το 1991 "
-                 "και ειδικεύτηκε στη Μεγάλη Βρετανία. Ίδρυσε το LVRI Athens το 2008.")
+                 "και ειδικεύτηκε στη Μεγάλη Βρετανία. Ίδρυσε το LVRI Athens το 2008.",
+                 "Μαιευτήρας γυναικολόγος, επιστημονικός υπεύθυνος του LVRI Athens. "
+                 "Ειδίκευση στη Μεγάλη Βρετανία, μέλος ACOG και RCOG.")
     build_doctor("dr-matlock", "david-l-matlock", "Dr. David L. Matlock",
                  "Συνιδρυτής · LVRI Los Angeles", "dr-matlock.jpg",
                  "Πιστοποιημένος χειρουργός γυναικολόγος των Η.Π.Α. και δημιουργός των "
-                 "κατοχυρωμένων τεχνικών LVR®, DLV® και G-Shot®.")
+                 "κατοχυρωμένων τεχνικών LVR®, DLV® και G-Shot®.",
+                 "Ιδρυτής του Laser Vaginal Rejuvenation Institute® της Αμερικής και "
+                 "δημιουργός των τεχνικών LVR®, DLV® και G-Shot®. Συνιδρυτής του LVRI Athens.")
     build_gallery(); build_contact(); build_terms(); build_404()
     build_en_home()
     for slug, legacy, title in EN_PAGES:

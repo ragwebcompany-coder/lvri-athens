@@ -967,3 +967,8 @@ body:has(.cookies.is-shown) .totop { bottom: 15rem; }
   width: 100%; border-radius: var(--r-xl); box-shadow: var(--shadow-lg); position: relative; z-index: 1;
 }
 .frame picture img { width: 100%; }
+
+/* Build credit */
+.credit { display: inline-flex; align-items: center; gap: .35rem; opacity: .8; transition: opacity .2s var(--ease); }
+.credit:hover { opacity: 1; }
+.credit b { font-weight: 600; color: #d6dbf0; }

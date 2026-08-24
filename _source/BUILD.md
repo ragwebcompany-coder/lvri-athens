@@ -73,6 +73,42 @@ cd lvri-new/site && python3 -m http.server 8899
 στέλνεται απευθείας, χρειάζεται endpoint (π.χ. Formspree) στο `booking()` του
 `site/assets/js/lvri.js`.
 
+## Τοπικό SEO (Βύρωνας / Αθήνα)
+
+Το site είναι ένα ιατρείο σε μία διεύθυνση, οπότε τα τοπικά σήματα συγκεντρώνονται
+αντί να διασπείρονται σε σελίδες-«κλώνους» ανά προάστιο (doorway pages — τις τιμωρεί
+η Google). Τι υπάρχει:
+
+- **Structured data**: ένα `@graph` με `MedicalClinic` + `LocalBusiness` και `Physician`
+  σε κάθε σελίδα, με `geo` (37.9568854, 23.7617037 — από το ίδιο το pin του πελάτη),
+  `hasMap`, `areaServed` (12 όμορες περιοχές + Αττική + Ελλάδα), `openingHoursSpecification`,
+  `availableService` με τις πέντε θεραπείες, `knowsLanguage`, `priceRange`.
+- **Ανά σελίδα**: `MedicalCondition` με `possibleTreatment`, `MedicalProcedure` με
+  `howPerformed` / `preparation` / `followup`, `FAQPage`, `BreadcrumbList`, `ContactPage`.
+- **Geo meta**: `geo.region` (GR-A1), `geo.placename`, `geo.position`, `ICBM`,
+  Open Graph `place:location:*` και `business:contact_data:*`.
+- **NAP**: ίδια ακριβώς γραφή σε footer, σελίδα επικοινωνίας και schema. Ο ΤΚ είναι
+  **162 31** — επιβεβαιωμένος από το Google Maps pin του πελάτη.
+- **Σελίδα τοποθεσίας**: το `/epikoinonia/` έχει χάρτη με συντεταγμένες, τους δύο
+  χώρους (ιατρείο Βύρωνα / μαιευτήριο ΡΕΑ), τις περιοχές προέλευσης ασθενών και έξι
+  τοπικές ερωτήσεις με `FAQPage` schema.
+- **Titles & descriptions**: ειδικότητα + περιοχή όπου διαβάζεται φυσικά. Όλες οι
+  περιγραφές ξαναγράφτηκαν — οι παλιές ήταν keyword stuffing («Super Αποτελέσματα —
+  Χαμηλό Κόστος! Τηλ. Ραντεβού: 2107609109»), που ρίχνει το CTR και τη σοβαρότητα.
+
+### Τι μένει εκτός κώδικα
+
+Το μεγαλύτερο μέρος του τοπικού SEO δεν παίζεται στον ιστότοπο:
+
+1. **Google Business Profile** — αν δεν υπάρχει, φτιάξτε το· αν υπάρχει, ταιριάξτε
+   ακριβώς NAP, ωράριο, κατηγορία («Γυναικολόγος» / «Ιατρικό κέντρο»), φωτογραφίες.
+   Είναι ο #1 παράγοντας για το local pack.
+2. **Κριτικές** — δεν μπήκε `aggregateRating` στο schema, γιατί θα ήταν κατασκευασμένο.
+   Μόλις υπάρχουν πραγματικές κριτικές, συνδέονται.
+3. **Τοπικές καταχωρήσεις** με ίδιο NAP: Χρυσός Οδηγός, Doctoranytime, Vrisko, iatronet.
+4. **Λεπτομέρειες πρόσβασης** που δεν επινοήσαμε: γραμμές λεωφορείων, στάση, parking,
+   όροφος, κουδούνι. Δώστε τα και μπαίνουν στο `/epikoinonia/`.
+
 ## SEO & μετάβαση
 
 - 301 ανακατευθύνσεις για **όλα** τα παλιά URL: `_redirects` (Netlify/Cloudflare)
@@ -91,6 +127,8 @@ cd lvri-new/site && python3 -m http.server 8899
   **Commissioner** (Κώστας Μπαρτσώκας) για το κείμενο — και οι δύο με πλήρη
   ελληνική κάλυψη, από Google Fonts.
 - Καμία εξωτερική εξάρτηση JavaScript.
+- Credit «Made by ClinicBrain» → https://clinicbrain.gr στο κάτω μέρος κάθε σελίδας
+  (`SITE["credit"]` στο `content/data.py`).
 
 ## Πριν τη δημοσίευση
 

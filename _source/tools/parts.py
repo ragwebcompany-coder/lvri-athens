@@ -57,6 +57,7 @@ T = {
         bk_consent="Συμφωνώ να χρησιμοποιήσετε τα στοιχεία μου για να επικοινωνήσετε μαζί μου. Διάβασα τους",
         bk_consent_link="όρους & την πολιτική απορρήτου", bk_consent_err="Χρειαζόμαστε τη συγκατάθεσή σας.",
         bk_nostore="Τίποτα δεν αποθηκεύεται εδώ.", bk_cancel="Άκυρο", bk_send="Αποστολή",
+        madeby="Made by",
     ),
     "en": dict(
         skip="Skip to content", nav_label="Main navigation",
@@ -85,6 +86,7 @@ T = {
         bk_consent="I agree that you may use my details to contact me. I have read the",
         bk_consent_link="terms & privacy policy", bk_consent_err="We need your consent.",
         bk_nostore="Nothing is stored on this site.", bk_cancel="Cancel", bk_send="Send",
+        madeby="Made by",
     ),
 }
 
@@ -108,6 +110,10 @@ def head(title, desc, depth, canonical, *, lang="el", alt=None, jsonld=None,
 <link rel="canonical" href="{SITE['domain']}/{canonical.lstrip('/')}">
 <link rel="alternate" hreflang="{lang}" href="{SITE['domain']}/{canonical.lstrip('/')}">{alt_links}
 <meta name="theme-color" content="#0b1038">
+<meta name="geo.region" content="{SITE['region_iso']}">
+<meta name="geo.placename" content="{SITE['locality']}, {SITE['region']}">
+<meta name="geo.position" content="{SITE['lat']};{SITE['lng']}">
+<meta name="ICBM" content="{SITE['lat']}, {SITE['lng']}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{SITE['name']}">
 <meta property="og:locale" content="{'el_GR' if lang == 'el' else 'en_GB'}">
@@ -115,6 +121,14 @@ def head(title, desc, depth, canonical, *, lang="el", alt=None, jsonld=None,
 <meta property="og:description" content="{desc}">
 <meta property="og:url" content="{SITE['domain']}/{canonical.lstrip('/')}">
 <meta property="og:image" content="{SITE['domain']}/{og_image}">
+<meta property="og:image:alt" content="{SITE['legal']}">
+<meta property="place:location:latitude" content="{SITE['lat']}">
+<meta property="place:location:longitude" content="{SITE['lng']}">
+<meta property="business:contact_data:locality" content="{SITE['locality']}">
+<meta property="business:contact_data:region" content="{SITE['region']}">
+<meta property="business:contact_data:postal_code" content="{SITE['postcode']}">
+<meta property="business:contact_data:country_name" content="Greece">
+<meta property="business:contact_data:phone_number" content="+30{SITE['phone_href'][3:]}">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="{b}assets/img/favicon-144.png" sizes="144x144">
 <link rel="apple-touch-icon" href="{b}assets/img/favicon-144.png">
@@ -271,7 +285,7 @@ def footer(depth, lang="el"):
       <div>
         <h4>{t['contact']}</h4>
         <ul style="margin-bottom:1.6rem">
-          <li><a href="{SITE['map']}" rel="noopener" target="_blank">{addr}</a></li>
+          <li><a href="{SITE['map']}" rel="noopener" target="_blank">{addr}, {SITE['postcode']}</a></li>
           <li><a href="tel:{SITE['phone_href']}">{SITE['phone']}</a></li>
           <li><a href="mailto:{SITE['email']}">{SITE['email']}</a></li>
         </ul>
@@ -280,10 +294,12 @@ def footer(depth, lang="el"):
       </div>
     </div>
     <div class="footer__bottom">
-      <span>© 2008–2026 {SITE['legal']}</span>
-      <span style="display:flex;gap:1.25rem;flex-wrap:wrap">
+      <span>© 2008–2026 {SITE['legal']} · {SITE['locality']}, {SITE['region']}</span>
+      <span style="display:flex;gap:1.25rem;flex-wrap:wrap;align-items:center">
         <a href="{b}oroi-chrisis/">{t['terms']}</a>
         <a href="{(b + 'en/') if lang == 'el' else b}">{t['other_lang_full']}</a>
+        <a class="credit" href="{SITE['credit']['url']}" target="_blank" rel="noopener">
+          {t['madeby']} <b>{SITE['credit']['name']}</b></a>
       </span>
     </div>
   </div>

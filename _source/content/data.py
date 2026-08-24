@@ -14,8 +14,16 @@ SITE = {
     "email": "info@lvriathens.com",
     "address": "Καραολή & Δημητρίου 41, Βύρωνας",
     "address_en": "Karaoli & Dimitriou 41, Vyronas, Athens",
-    "postcode": "162 32",
+    "postcode": "162 31",
     "map": "https://goo.gl/maps/G8ceMgUT5fFua3pm7",
+    "map_full": ("https://www.google.com/maps/place/Karaoli+ke+Dimitriou+41,"
+                 "+Vironas+162+31/@37.956885,23.761704,16z"),
+    "lat": 37.9568854,
+    "lng": 23.7617037,
+    "region_iso": "GR-A1",          # Αττική, ISO 3166-2
+    "locality": "Βύρωνας",
+    "locality_en": "Vyronas",
+    "region": "Αττική",
     "founded": "2008",
     "hours": [("Δευτέρα – Παρασκευή", "09:00 – 17:00"),
               ("Σάββατο", "09:00 – 15:00"),
@@ -23,6 +31,21 @@ SITE = {
     "hours_en": [("Monday – Friday", "09:00 – 17:00"),
                  ("Saturday", "09:00 – 15:00"),
                  ("Sunday", "Closed")],
+    # Where the clinic's work actually happens. Both facts come from the
+    # clinic's own biography copy; confirm before changing.
+    "venues": [
+        ("Ιατρείο Βύρωνα", "Καραολή & Δημητρίου 41, Βύρωνας",
+         "Ραντεβού, εξέταση, θεραπείες laser και ενέσιμες θεραπείες."),
+        ("Μαιευτήριο ΡΕΑ", "Νότια προάστια Αθηνών",
+         "Χειρουργικές επεμβάσεις. Ο Dr. Μυρίλλας διευθύνει εκεί από το 2013 "
+         "το τμήμα πλαστικής κόλπου και επανορθωτικής χειρουργικής πυέλου με laser."),
+    ],
+    # Όμορες περιοχές που εξυπηρετούνται καθημερινά — δηλώνονται ως areaServed,
+    # δεν φτιάχνουμε ξεχωριστή σελίδα για την καθεμία (doorway pages).
+    "areas": ["Βύρωνας", "Καισαριανή", "Παγκράτι", "Ζωγράφου", "Υμηττός",
+              "Ηλιούπολη", "Δάφνη", "Άγιος Αρτέμιος", "Νέος Κόσμος",
+              "Κέντρο Αθήνας", "Αργυρούπολη", "Γλυφάδα"],
+    "credit": {"name": "ClinicBrain", "url": "https://clinicbrain.gr"},
     "social": {
         "facebook": "https://www.facebook.com/lvriathens/",
         "youtube": "https://www.youtube.com/user/KMyrillas",
@@ -34,6 +57,7 @@ SITE = {
 CONDITIONS = [
     dict(slug="akrateia-ouron", legacy="akrateia-ouron", organ="bladder",
          title="Ακράτεια ούρων",
+         meta="Ακράτεια ούρων στις γυναίκες: οι τέσσερις τύποι, τα αίτια, ο ουροδυναμικός έλεγχος και οι θεραπείες — από ασκήσεις Kegel μέχρι laser και χειρουργείο.",
          lead="Αφορά περίπου το 20% των γυναικών στην Ελλάδα. Είναι σύμπτωμα, όχι ασθένεια — και στις περισσότερες περιπτώσεις αντιμετωπίζεται ριζικά.",
          plain="Χάνω ούρα χωρίς να το θέλω.",
          stat=("20%", "των γυναικών στην Ελλάδα"),
@@ -41,6 +65,7 @@ CONDITIONS = [
 
     dict(slug="proptosi-mitras", legacy="proptosi-mitras", organ="uterus",
          title="Πρόπτωση μήτρας & κόλπου",
+         meta="Πρόπτωση μήτρας και κόλπου: πώς αναγνωρίζεται, τα στάδια κατά POP-Q και οι θεραπείες που αποκαθιστούν την ανατομία του πυελικού εδάφους.",
          lead="Όταν το μυϊκό σύστημα που στηρίζει την πύελο χαλαρώσει, τα όργανα κατεβαίνουν. Ταξινομείται σε στάδια κατά POP-Q.",
          plain="Νιώθω βάρος ή κάτι να προβάλλει.",
          stat=("4", "στάδια κατά POP-Q"),
@@ -48,6 +73,7 @@ CONDITIONS = [
 
     dict(slug="ksirotita-kolpou", legacy="kolpiki-ksirotita", organ="vagina",
          title="Ξηρότητα κόλπου",
+         meta="Ξηρότητα κόλπου: γιατί συμβαίνει, με ή χωρίς εμμηνόπαυση, και πώς την αντιμετωπίζουν το laser και οι ενέσιμες θεραπείες με υαλουρονικό.",
          lead="Δεν αφορά μόνο την εμμηνόπαυση. Ο κόλπος χάνει ελαστικότητα και κολλαγόνο, το pH αλκαλοποιείται και η χλωρίδα αλλάζει.",
          plain="Νιώθω ξηρότητα, κάψιμο ή πόνο στην επαφή.",
          stat=("pH 6–7", "αλκαλοποίηση του κόλπου"),
@@ -55,6 +81,7 @@ CONDITIONS = [
 
     dict(slug="kysteokili", legacy="kysteokhlh", organ="bladder",
          title="Κυστεοκήλη",
+         meta="Κυστεοκήλη: όταν η ουροδόχος κύστη προβάλλει στο πρόσθιο τοίχωμα του κόλπου. Συμπτώματα, βαθμοί βαρύτητας και θεραπευτικές επιλογές.",
          lead="Η ουροδόχος κύστη προβάλλει προς το πρόσθιο τοίχωμα του κόλπου, συχνά μαζί με δυσκολία στην πλήρη κένωση.",
          plain="Δυσκολεύομαι να αδειάσω την κύστη μου.",
          stat=("Πρόσθιο", "τοίχωμα κόλπου"),
@@ -62,6 +89,7 @@ CONDITIONS = [
 
     dict(slug="orthokili-enterokili", legacy="orthokili-enterokili", organ="rectum",
          title="Ορθοκήλη & εντεροκήλη",
+         meta="Ορθοκήλη και εντεροκήλη: συμπτώματα, διαφορές και θεραπεία — από μη επεμβατικό laser στις αρχόμενες μορφές μέχρι πλήρη ανάπλαση κόλπου.",
          lead="Το ορθό ή το λεπτό έντερο πιέζει το οπίσθιο τοίχωμα του κόλπου. Προκαλεί δυσκοιλιότητα και επώδυνη επαφή.",
          plain="Δυσκολεύομαι στην κένωση, χρειάζομαι πίεση.",
          stat=("Οπίσθιο", "τοίχωμα κόλπου"),
@@ -74,6 +102,7 @@ TREATMENTS = [
     dict(slug="anazoogonisi-kolpou", legacy="anazoogonisi-kolpou",
          title="Αναζωογόνηση κόλπου με laser",
          short="Renovalaser / IntimaLase",
+         meta="Αναζωογόνηση κόλπου με laser: 2–3 ανώδυνες συνεδρίες των 15 λεπτών στο ιατρείο, χωρίς χρόνο ανάρρωσης, για ξηρότητα, ατροφία και ήπια χαλάρωση.",
          lead="Μη επεμβατικό laser στο ιατρείο. Αποκαθιστά την ελαστικότητα και την κολλαγόνωση του κόλπου.",
          invasive="non",
          matrix=dict(setting="Ιατρείο", anesthesia="Δεν απαιτείται",
@@ -84,6 +113,7 @@ TREATMENTS = [
     dict(slug="g-shot", legacy="g-shot",
          title="G-Shot®",
          short="Ενίσχυση σημείου G",
+         meta="G-Shot®: ένεση υαλουρονικού υψηλού μοριακού βάρους στο σημείο G με τοπική αναισθησία. Επίσκεψη κάτω από 30 λεπτά, χωρίς χρόνο ανάρρωσης.",
          lead="Ένεση υαλουρονικού υψηλού μοριακού βάρους στο σημείο G, με τη βοήθεια ειδικού κολποσκοπίου.",
          invasive="minor",
          matrix=dict(setting="Ιατρείο", anesthesia="Τοπική",
@@ -94,6 +124,7 @@ TREATMENTS = [
     dict(slug="aidoioplastiki", legacy="plastiki-aidoiou",
          title="Αιδοιοπλαστική",
          short="Designer Laser Vaginoplasty®",
+         meta="Αιδοιοπλαστική (Designer Laser Vaginoplasty®): αισθητική χειρουργική των αιδοιϊκών δομών, των χειλέων, του εφηβαίου και του περινέου.",
          lead="Αισθητική χειρουργική ενίσχυση των αιδοιϊκών δομών: μεγάλα και μικρά χείλη, εφηβαίο, περίνεο, είσοδος κόλπου.",
          invasive="surgical",
          matrix=dict(setting="Χειρουργείο ημέρας", anesthesia="Κατά προτίμηση τοπική",
@@ -104,6 +135,7 @@ TREATMENTS = [
     dict(slug="laser-plastiki-kolpou", legacy="laser-kolpou",
          title="Laser πλαστική κόλπου",
          short="Laser Vaginal Rejuvenation®",
+         meta="Laser πλαστική κόλπου (LVR®): χειρουργική σύσφιξη με CO₂ laser σε χειρουργείο ημέρας, χωρίς αφαίρεση ραμμάτων και με άμεση επιστροφή στα δικά σας.",
          lead="Χειρουργική σύσφιξη με CO₂ laser. Χειρουργείο ημέρας, χωρίς αφαίρεση ραμμάτων.",
          invasive="surgical",
          matrix=dict(setting="Χειρουργείο ημέρας", anesthesia="Εξατομικευμένη",
@@ -115,6 +147,7 @@ TREATMENTS = [
     dict(slug="xeirourgiki-pyelikou-edafous", legacy="xeirourgiki-pyelikou-edafous",
          title="Χειρουργική πυελικού εδάφους",
          short="Total Vaginal Reconstruction",
+         meta="Χειρουργική πυελικού εδάφους: πλήρης ανάπλαση κόλπου με επεμβατικό CO₂ laser για βαρύτερη κυστεοκήλη, ορθοκήλη και πρόπτωση μήτρας.",
          lead="Πλήρης ανάπλαση του κόλπου με επεμβατικό CO₂ laser για βαρύτερες ή παραμελημένες κήλες.",
          invasive="surgical",
          matrix=dict(setting="Χειρουργείο", anesthesia="Εξατομικευμένη",
