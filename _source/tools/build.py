@@ -833,9 +833,10 @@ def build_treatment(t):
           {"@context": "https://schema.org", "@type": "MedicalProcedure",
            "name": t["title"], "alternateName": t["short"], "description": t["lead"],
            "url": f"{SITE['domain']}/therapeies/{slug}/",
-           "procedureType": ("https://schema.org/NoninvasiveProcedure"
-                             if t["invasive"] == "non" else "https://schema.org/SurgicalProcedure"),
            "bodyLocation": "Πυελικό έδαφος",
+           **({"procedureType": "https://schema.org/NoninvasiveProcedure"} if t["invasive"] == "non"
+              else {"procedureType": "https://schema.org/SurgicalProcedure"} if t["invasive"] == "surgical"
+              else {}),
            "howPerformed": m["setting"],
            "preparation": m["anesthesia"],
            "followup": m["recovery"],
