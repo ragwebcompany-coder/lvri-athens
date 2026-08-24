@@ -1,10 +1,224 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "trailingSlash": true,
   "cleanUrls": false,
+  "redirects": [
+    {
+      "source": "/aidoioplastiki-tonoste-tin-aftopepoithisi-sas-allakste-tin-poiotita-tis-zois-sas",
+      "destination": "/arthra/aidoioplastiki-tonoste-tin-aftopepoithisi-sas-allakste-tin-poiotita-tis-zois-sas/",
+      "permanent": true
+    },
+    {
+      "source": "/akrateia-ouron",
+      "destination": "/pathiseis/akrateia-ouron/",
+      "permanent": true
+    },
+    {
+      "source": "/akrateia-ouron-aitia-diagnosi-therapeia",
+      "destination": "/arthra/akrateia-ouron-aitia-diagnosi-therapeia/",
+      "permanent": true
+    },
+    {
+      "source": "/akrateia-ouron-aitia-kai-therapeia",
+      "destination": "/arthra/akrateia-ouron-aitia-kai-therapeia/",
+      "permanent": true
+    },
+    {
+      "source": "/akrateia-ouron-prospatheias",
+      "destination": "/arthra/akrateia-ouron-prospatheias/",
+      "permanent": true
+    },
+    {
+      "source": "/anazoogonisi-kolpou",
+      "destination": "/therapeies/anazoogonisi-kolpou/",
+      "permanent": true
+    },
+    {
+      "source": "/apolafste-tin-kathe-mera-kratiste-makria-tin-kolpiki-ksirotita",
+      "destination": "/arthra/apolafste-tin-kathe-mera-kratiste-makria-tin-kolpiki-ksirotita/",
+      "permanent": true
+    },
+    {
+      "source": "/arthro-gia-tin-akrateia-ouron",
+      "destination": "/arthra/arthro-gia-tin-akrateia-ouron/",
+      "permanent": true
+    },
+    {
+      "source": "/arthro-gia-tin-kolpiki-proptosi",
+      "destination": "/arthra/arthro-gia-tin-kolpiki-proptosi/",
+      "permanent": true
+    },
+    {
+      "source": "/david-l-matlock",
+      "destination": "/dr-matlock/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-k-mirillas",
+      "destination": "/dr-mirillas/",
+      "permanent": true
+    },
+    {
+      "source": "/epikinonia",
+      "destination": "/epikoinonia/",
+      "permanent": true
+    },
+    {
+      "source": "/g-shot",
+      "destination": "/therapeies/g-shot/",
+      "permanent": true
+    },
+    {
+      "source": "/h-kliniki",
+      "destination": "/i-kliniki/",
+      "permanent": true
+    },
+    {
+      "source": "/iatrika-arthra",
+      "destination": "/arthra/",
+      "permanent": true
+    },
+    {
+      "source": "/kolpiki-ksirotita",
+      "destination": "/pathiseis/ksirotita-kolpou/",
+      "permanent": true
+    },
+    {
+      "source": "/ksirotita-kolpou-kata-tin-emminopausi-to-laser-einai-h-lysi",
+      "destination": "/arthra/ksirotita-kolpou-kata-tin-emminopausi-to-laser-einai-h-lysi/",
+      "permanent": true
+    },
+    {
+      "source": "/kysteokhlh",
+      "destination": "/pathiseis/kysteokili/",
+      "permanent": true
+    },
+    {
+      "source": "/laser-kolpou",
+      "destination": "/therapeies/laser-plastiki-kolpou/",
+      "permanent": true
+    },
+    {
+      "source": "/mathete-ta-panta-gia-tin-proptosi-mitras",
+      "destination": "/arthra/mathete-ta-panta-gia-tin-proptosi-mitras/",
+      "permanent": true
+    },
+    {
+      "source": "/oroi-chrisis-politiki-aporritou",
+      "destination": "/oroi-chrisis/",
+      "permanent": true
+    },
+    {
+      "source": "/orthokili-enterokili",
+      "destination": "/pathiseis/orthokili-enterokili/",
+      "permanent": true
+    },
+    {
+      "source": "/photo-gallery",
+      "destination": "/gallery/",
+      "permanent": true
+    },
+    {
+      "source": "/plastiki-aidoiou",
+      "destination": "/therapeies/aidoioplastiki/",
+      "permanent": true
+    },
+    {
+      "source": "/plastiki-kolpou-o-dr-myrillas-apanta",
+      "destination": "/arthra/plastiki-kolpou-o-dr-myrillas-apanta/",
+      "permanent": true
+    },
+    {
+      "source": "/plastiki-kolpou-vlaves-pou-diorthonei",
+      "destination": "/arthra/plastiki-kolpou-vlaves-pou-diorthonei/",
+      "permanent": true
+    },
+    {
+      "source": "/poies-afora-i-ksirotita-kolpou-kai-pos-tin-antimetopizei-i-sygchroni-iatriki",
+      "destination": "/arthra/poies-afora-i-ksirotita-kolpou-kai-pos-tin-antimetopizei-i-sygchroni-iatriki/",
+      "permanent": true
+    },
+    {
+      "source": "/proptosi-mitras",
+      "destination": "/pathiseis/proptosi-mitras/",
+      "permanent": true
+    },
+    {
+      "source": "/proto-pagosmio-synedrio-laha-laser",
+      "destination": "/arthra/proto-pagosmio-synedrio-laha-laser/",
+      "permanent": true
+    },
+    {
+      "source": "/therapeia-akrateias-ouron-ksirotitas-sysfixis-kolpou",
+      "destination": "/arthra/therapeia-akrateias-ouron-ksirotitas-sysfixis-kolpou/",
+      "permanent": true
+    },
+    {
+      "source": "/to-laser-stin-sygxroni-epoxi",
+      "destination": "/arthra/to-laser-stin-sygxroni-epoxi/",
+      "permanent": true
+    },
+    {
+      "source": "/video-gallery",
+      "destination": "/gallery/",
+      "permanent": true
+    },
+    {
+      "source": "/xeirourgiki-pyelikou-edafous",
+      "destination": "/therapeies/xeirourgiki-pyelikou-edafous/",
+      "permanent": true
+    },
+    {
+      "source": "/ygieini-kata-tis-kolpitidas",
+      "destination": "/arthra/ygieini-kata-tis-kolpitidas/",
+      "permanent": true
+    },
+    {
+      "source": "/photo-gallery",
+      "destination": "/gallery/",
+      "permanent": true
+    },
+    {
+      "source": "/video-gallery",
+      "destination": "/gallery/",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
-      "source": "/wp-content/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      "source": "/assets/(img|docs)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(css|js)/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(), camera=()"
+        }
+      ]
     }
   ]
 }

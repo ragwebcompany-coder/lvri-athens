@@ -1,0 +1,4 @@
+# Build sources — not part of the deployed site.
+_source/
+.htaccess
+_redirects
