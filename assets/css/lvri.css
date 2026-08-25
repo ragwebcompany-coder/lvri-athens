@@ -801,10 +801,17 @@ dialog.book::backdrop { background: rgba(11,16,56,.55); backdrop-filter: blur(5p
   background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg);
   box-shadow: var(--shadow-lg); padding: 1.35rem;
   display: grid; gap: 1rem;
-  transform: translateY(calc(100% + 2rem)); transition: transform .4s var(--ease-out);
+  /* The hidden offset has to clear the bottom gap as well, otherwise a strip
+     of the notice stays on screen -- the gap is larger on phones. */
+  transform: translateY(calc(100% + 3rem));
+  opacity: 0; visibility: hidden;
+  transition: transform .4s var(--ease-out), opacity .3s var(--ease-out), visibility .4s;
 }
-.cookies.is-shown { transform: translateY(0); }
-@media (max-width: 779px) { .cookies { bottom: 5.5rem; } }
+.cookies.is-shown { transform: translateY(0); opacity: 1; visibility: visible; }
+@media (max-width: 779px) {
+  .cookies { bottom: 5.5rem; transform: translateY(calc(100% + 7rem)); }
+  .cookies.is-shown { transform: translateY(0); }
+}
 .cookies__row { display: flex; gap: .6rem; flex-wrap: wrap; }
 .cookies__toggle { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: .85rem; }
 .switch { position: relative; width: 40px; height: 22px; flex: none; }
