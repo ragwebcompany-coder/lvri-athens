@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 .vercel
+
+# Local build output of the version-2 generator when it is run in place.
+_source/v2/site/
