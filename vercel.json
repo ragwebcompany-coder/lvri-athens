@@ -172,16 +172,6 @@
       "source": "/ygieini-kata-tis-kolpitidas/",
       "destination": "/arthra/ygieini-kata-tis-kolpitidas/",
       "permanent": true
-    },
-    {
-      "source": "/photo-gallery/",
-      "destination": "/gallery/",
-      "permanent": true
-    },
-    {
-      "source": "/video-gallery/",
-      "destination": "/gallery/",
-      "permanent": true
     }
   ],
   "headers": [

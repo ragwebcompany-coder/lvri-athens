@@ -1,38 +1,49 @@
 RewriteEngine On
-RewriteRule ^aidoioplastiki-tonoste-tin-aftopepoithisi-sas-allakste-tin-poiotita-tis-zois-sas/?$ /arthra/aidoioplastiki-tonoste-tin-aftopepoithisi-sas-allakste-tin-poiotita-tis-zois-sas/ [R=301,L]
-RewriteRule ^akrateia-ouron/?$ /pathiseis/akrateia-ouron/ [R=301,L]
-RewriteRule ^akrateia-ouron-aitia-diagnosi-therapeia/?$ /arthra/akrateia-ouron-aitia-diagnosi-therapeia/ [R=301,L]
-RewriteRule ^akrateia-ouron-aitia-kai-therapeia/?$ /arthra/akrateia-ouron-aitia-kai-therapeia/ [R=301,L]
-RewriteRule ^akrateia-ouron-prospatheias/?$ /arthra/akrateia-ouron-prospatheias/ [R=301,L]
-RewriteRule ^anazoogonisi-kolpou/?$ /therapeies/anazoogonisi-kolpou/ [R=301,L]
-RewriteRule ^apolafste-tin-kathe-mera-kratiste-makria-tin-kolpiki-ksirotita/?$ /arthra/apolafste-tin-kathe-mera-kratiste-makria-tin-kolpiki-ksirotita/ [R=301,L]
-RewriteRule ^arthro-gia-tin-akrateia-ouron/?$ /arthra/arthro-gia-tin-akrateia-ouron/ [R=301,L]
-RewriteRule ^arthro-gia-tin-kolpiki-proptosi/?$ /arthra/arthro-gia-tin-kolpiki-proptosi/ [R=301,L]
-RewriteRule ^david-l-matlock/?$ /dr-matlock/ [R=301,L]
-RewriteRule ^dr-k-mirillas/?$ /dr-mirillas/ [R=301,L]
-RewriteRule ^epikinonia/?$ /epikoinonia/ [R=301,L]
-RewriteRule ^g-shot/?$ /therapeies/g-shot/ [R=301,L]
-RewriteRule ^h-kliniki/?$ /i-kliniki/ [R=301,L]
-RewriteRule ^iatrika-arthra/?$ /arthra/ [R=301,L]
-RewriteRule ^kolpiki-ksirotita/?$ /pathiseis/ksirotita-kolpou/ [R=301,L]
-RewriteRule ^ksirotita-kolpou-kata-tin-emminopausi-to-laser-einai-h-lysi/?$ /arthra/ksirotita-kolpou-kata-tin-emminopausi-to-laser-einai-h-lysi/ [R=301,L]
-RewriteRule ^kysteokhlh/?$ /pathiseis/kysteokili/ [R=301,L]
-RewriteRule ^laser-kolpou/?$ /therapeies/laser-plastiki-kolpou/ [R=301,L]
-RewriteRule ^mathete-ta-panta-gia-tin-proptosi-mitras/?$ /arthra/mathete-ta-panta-gia-tin-proptosi-mitras/ [R=301,L]
-RewriteRule ^oroi-chrisis-politiki-aporritou/?$ /oroi-chrisis/ [R=301,L]
-RewriteRule ^orthokili-enterokili/?$ /pathiseis/orthokili-enterokili/ [R=301,L]
-RewriteRule ^photo-gallery/?$ /gallery/ [R=301,L]
-RewriteRule ^plastiki-aidoiou/?$ /therapeies/aidoioplastiki/ [R=301,L]
-RewriteRule ^plastiki-kolpou-o-dr-myrillas-apanta/?$ /arthra/plastiki-kolpou-o-dr-myrillas-apanta/ [R=301,L]
-RewriteRule ^plastiki-kolpou-vlaves-pou-diorthonei/?$ /arthra/plastiki-kolpou-vlaves-pou-diorthonei/ [R=301,L]
-RewriteRule ^poies-afora-i-ksirotita-kolpou-kai-pos-tin-antimetopizei-i-sygchroni-iatriki/?$ /arthra/poies-afora-i-ksirotita-kolpou-kai-pos-tin-antimetopizei-i-sygchroni-iatriki/ [R=301,L]
-RewriteRule ^proptosi-mitras/?$ /pathiseis/proptosi-mitras/ [R=301,L]
-RewriteRule ^proto-pagosmio-synedrio-laha-laser/?$ /arthra/proto-pagosmio-synedrio-laha-laser/ [R=301,L]
-RewriteRule ^therapeia-akrateias-ouron-ksirotitas-sysfixis-kolpou/?$ /arthra/therapeia-akrateias-ouron-ksirotitas-sysfixis-kolpou/ [R=301,L]
-RewriteRule ^to-laser-stin-sygxroni-epoxi/?$ /arthra/to-laser-stin-sygxroni-epoxi/ [R=301,L]
-RewriteRule ^video-gallery/?$ /gallery/ [R=301,L]
-RewriteRule ^xeirourgiki-pyelikou-edafous/?$ /therapeies/xeirourgiki-pyelikou-edafous/ [R=301,L]
-RewriteRule ^ygieini-kata-tis-kolpitidas/?$ /arthra/ygieini-kata-tis-kolpitidas/ [R=301,L]
-RewriteRule ^photo-gallery/?$ /gallery/ [R=301,L]
-RewriteRule ^video-gallery/?$ /gallery/ [R=301,L]
+RewriteBase /
+
+# 301s from the previous site structure
+RedirectMatch 301 ^/aidoioplastiki\-tonoste\-tin\-aftopepoithisi\-sas\-allakste\-tin\-poiotita\-tis\-zois\-sas/?$ /arthra/aidoioplastiki-tonoste-tin-aftopepoithisi-sas-allakste-tin-poiotita-tis-zois-sas/
+RedirectMatch 301 ^/akrateia\-ouron/?$ /pathiseis/akrateia-ouron/
+RedirectMatch 301 ^/akrateia\-ouron\-aitia\-diagnosi\-therapeia/?$ /arthra/akrateia-ouron-aitia-diagnosi-therapeia/
+RedirectMatch 301 ^/akrateia\-ouron\-aitia\-kai\-therapeia/?$ /arthra/akrateia-ouron-aitia-kai-therapeia/
+RedirectMatch 301 ^/akrateia\-ouron\-prospatheias/?$ /arthra/akrateia-ouron-prospatheias/
+RedirectMatch 301 ^/anazoogonisi\-kolpou/?$ /therapeies/anazoogonisi-kolpou/
+RedirectMatch 301 ^/apolafste\-tin\-kathe\-mera\-kratiste\-makria\-tin\-kolpiki\-ksirotita/?$ /arthra/apolafste-tin-kathe-mera-kratiste-makria-tin-kolpiki-ksirotita/
+RedirectMatch 301 ^/arthro\-gia\-tin\-akrateia\-ouron/?$ /arthra/arthro-gia-tin-akrateia-ouron/
+RedirectMatch 301 ^/arthro\-gia\-tin\-kolpiki\-proptosi/?$ /arthra/arthro-gia-tin-kolpiki-proptosi/
+RedirectMatch 301 ^/david\-l\-matlock/?$ /dr-matlock/
+RedirectMatch 301 ^/dr\-k\-mirillas/?$ /dr-mirillas/
+RedirectMatch 301 ^/epikinonia/?$ /epikoinonia/
+RedirectMatch 301 ^/g\-shot/?$ /therapeies/g-shot/
+RedirectMatch 301 ^/h\-kliniki/?$ /i-kliniki/
+RedirectMatch 301 ^/iatrika\-arthra/?$ /arthra/
+RedirectMatch 301 ^/kolpiki\-ksirotita/?$ /pathiseis/ksirotita-kolpou/
+RedirectMatch 301 ^/ksirotita\-kolpou\-kata\-tin\-emminopausi\-to\-laser\-einai\-h\-lysi/?$ /arthra/ksirotita-kolpou-kata-tin-emminopausi-to-laser-einai-h-lysi/
+RedirectMatch 301 ^/kysteokhlh/?$ /pathiseis/kysteokili/
+RedirectMatch 301 ^/laser\-kolpou/?$ /therapeies/laser-plastiki-kolpou/
+RedirectMatch 301 ^/mathete\-ta\-panta\-gia\-tin\-proptosi\-mitras/?$ /arthra/mathete-ta-panta-gia-tin-proptosi-mitras/
+RedirectMatch 301 ^/oroi\-chrisis\-politiki\-aporritou/?$ /oroi-chrisis/
+RedirectMatch 301 ^/orthokili\-enterokili/?$ /pathiseis/orthokili-enterokili/
+RedirectMatch 301 ^/photo\-gallery/?$ /gallery/
+RedirectMatch 301 ^/plastiki\-aidoiou/?$ /therapeies/aidoioplastiki/
+RedirectMatch 301 ^/plastiki\-kolpou\-o\-dr\-myrillas\-apanta/?$ /arthra/plastiki-kolpou-o-dr-myrillas-apanta/
+RedirectMatch 301 ^/plastiki\-kolpou\-vlaves\-pou\-diorthonei/?$ /arthra/plastiki-kolpou-vlaves-pou-diorthonei/
+RedirectMatch 301 ^/poies\-afora\-i\-ksirotita\-kolpou\-kai\-pos\-tin\-antimetopizei\-i\-sygchroni\-iatriki/?$ /arthra/poies-afora-i-ksirotita-kolpou-kai-pos-tin-antimetopizei-i-sygchroni-iatriki/
+RedirectMatch 301 ^/proptosi\-mitras/?$ /pathiseis/proptosi-mitras/
+RedirectMatch 301 ^/proto\-pagosmio\-synedrio\-laha\-laser/?$ /arthra/proto-pagosmio-synedrio-laha-laser/
+RedirectMatch 301 ^/therapeia\-akrateias\-ouron\-ksirotitas\-sysfixis\-kolpou/?$ /arthra/therapeia-akrateias-ouron-ksirotitas-sysfixis-kolpou/
+RedirectMatch 301 ^/to\-laser\-stin\-sygxroni\-epoxi/?$ /arthra/to-laser-stin-sygxroni-epoxi/
+RedirectMatch 301 ^/video\-gallery/?$ /gallery/
+RedirectMatch 301 ^/xeirourgiki\-pyelikou\-edafous/?$ /therapeies/xeirourgiki-pyelikou-edafous/
+RedirectMatch 301 ^/ygieini\-kata\-tis\-kolpitidas/?$ /arthra/ygieini-kata-tis-kolpitidas/
+
 ErrorDocument 404 /404.html
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+</IfModule>

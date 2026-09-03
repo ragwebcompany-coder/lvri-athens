@@ -1,49 +1,50 @@
 # LVRI Athens
 
-Ιστότοπος του Laser Vaginal Rejuvenation Institute of Athens.
-Στατικό site — HTML/CSS/JS χωρίς εξαρτήσεις, χωρίς build step στο deploy.
-
-**Live:** https://lvri-athens.vercel.app
+Στατικός ιστότοπος για το **Laser Vaginal Rejuvenation Institute of Athens**.
+Το περιεχόμενο του repo **είναι** το ανεβασμένο site: ό,τι βρίσκεται στο root σερβίρεται
+από το Vercel. Ο κώδικας που το παράγει ζει στο `_source/` και δεν ανεβαίνει
+(`.vercelignore`).
 
 ## Δομή
 
 ```
-/                  το site όπως σερβίρεται (45 σελίδες + 404)
-  assets/{css,js,img,docs}
-  vercel.json      301 από τα παλιά URL, cache & security headers
-  sitemap.xml · robots.txt · search-index.json
-_source/           ο generator — δεν γίνεται deploy (.vercelignore)
-  content/data.py  ΕΔΩ αλλάζετε περιεχόμενο, στοιχεία, μενού
-  tools/build.py   ξαναχτίζει όλες τις σελίδες
-  BUILD.md         αναλυτικές οδηγίες
+/                    ← το site που σερβίρεται (HTML, assets, sitemap, redirects)
+/_source/content/    ← η μοναδική πηγή περιεχομένου: data.py + legacy.json
+/_source/tools/      ← generator έκδοσης 1
+/_source/v2/         ← generator έκδοσης 2
 ```
 
-## Αλλαγές στο site
+Και οι δύο generators διαβάζουν το **ίδιο** `_source/content/`. Αλλάζετε το κείμενο μία
+φορά και ξαναχτίζετε όποια έκδοση θέλετε.
+
+## Ξαναχτίσιμο
 
 ```bash
-# 1. επεξεργασία _source/content/data.py ή _source/content/legacy.json
-# 2. ξαναχτίσιμο στο root του repo
-LVRI_OUT=. python3 _source/tools/build.py
-# 3. commit & push — το Vercel κάνει deploy μόνο του
+# έκδοση 2 (τρέχουσα σχεδίαση)
+LVRI2_OUT="$PWD" python3 _source/v2/build.py
+
+# έκδοση 1
+LVRI_OUT="$PWD" python3 _source/tools/build.py
 ```
+
+Τρέχει σε ~2 δευτερόλεπτα, χωρίς εξαρτήσεις πέρα από Python 3, και ξαναγράφει και τις
+46 σελίδες μαζί με `sitemap.xml`, `robots.txt`, `vercel.json`, `_redirects` και `.htaccess`.
 
 ## Τοπική προεπισκόπηση
 
 ```bash
-python3 -m http.server 8080   # http://localhost:8080
+python3 -m http.server 8899
 ```
 
-## Deploy
+## Τι αλλάζετε πού
 
-Vercel · Framework Preset **Other** · Output Directory `.`
-Το `vercel.json` κρατά `trailingSlash: true` και τις 36 ανακατευθύνσεις 301
-από τα παλιά WordPress URL. Τα `_redirects` (Netlify) και `.htaccess` (Apache)
-υπάρχουν για φορητότητα αν αλλάξει hosting.
+| Θέλετε να αλλάξετε | Αρχείο |
+|---|---|
+| Τηλέφωνο, διεύθυνση, ωράριο | `_source/content/data.py` → `SITE` |
+| Θεραπείες, παθήσεις, στατιστικά | `_source/content/data.py` |
+| Κείμενο σελίδας | `_source/content/legacy.json` (πεδίο `html`) |
+| Χρώματα, γραμματοσειρές (v2) | `_source/v2/src/assets/css/v2.css` → `:root` |
+| Φωτογραφία θεραπείας/πάθησης | `_source/content/data.py` → πεδίο `image` |
 
-## Σημειώσεις
-
-- Η φόρμα ραντεβού συνθέτει email — δεν υπάρχει backend. Για απευθείας αποστολή
-  χρειάζεται endpoint (Formspree / Web3Forms) στο `booking()` του `assets/js/lvri.js`.
-- Η αναζήτηση είναι client-side πάνω στο `search-index.json`.
-- Οι κλινικές φωτογραφίες στο `/gallery/` εμφανίζονται μόνο μετά από ρητή
-  επιλογή του επισκέπτη.
+Αναλυτικά για την έκδοση 2: [`_source/v2/README.md`](_source/v2/README.md).
+Για την έκδοση 1: [`_source/BUILD.md`](_source/BUILD.md).
