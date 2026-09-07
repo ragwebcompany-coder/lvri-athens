@@ -9,12 +9,14 @@ designed rather than generated:
   · no gradients, no glows, no abstract generated artwork
   · real photography where it exists; typography where it does not
 """
-import re, json, html
+import re, os, json, html, struct
 from content import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS, RED_FLAGS,
                      KEGEL, VIDEOS, CONDS, TREATS, rel, article_title,
-                     article_pretty_date, read_minutes, plain, TODAY)
+                     article_pretty_date, read_minutes, plain, TODAY,
+                     ARTICLE_IMAGES)
+from content import ROOT as _C_ROOT
 
-ASSET_V = "3"
+ASSET_V = "4"
 
 # ── icons ────────────────────────────────────────────────────────────────────
 I = {
@@ -224,6 +226,28 @@ def card_art(title, depth, *, image=None, alt="", w=800, h=600, kicker=""):
       </span>'''
 
 
+def hero_photo(image, alt, depth):
+    """Opening tag for a page hero that carries a photograph behind the title.
+    Falls back to the plain hero when the entry has no image yet."""
+    if not image:
+        return '<section class="page-hero">'
+    return (f'<section class="page-hero page-hero--photo">'
+            f'<span class="page-hero__bg" aria-hidden="true">'
+            f'{pic(image, "", 1200, 900, depth, eager=True)}</span>')
+
+
+def photo_tile(image, alt, depth, *, kicker, heading, body="", extra_attrs=""):
+    """A .tile with a 4:3 photograph on top. Without an image it degrades to the
+    plain text tile, so a missing photo never breaks the grid."""
+    ph = (f'<span class="tile__ph">{pic(image, alt, 800, 600, depth)}</span>'
+          if image else '')
+    cls = "tile tile--photo" if image else "tile"
+    inner = (f'<span class="tile__n">{kicker}</span>{heading}{body}')
+    if image:
+        return f'<article class="{cls}"{extra_attrs}>{ph}<span class="tile__body">{inner}</span></article>'
+    return f'<article class="{cls}"{extra_attrs}>{inner}</article>'
+
+
 def _slide(inner, save=""):
     return f'<div class="nf-slide">{inner}{save}</div>'
 
@@ -271,9 +295,14 @@ def condition_card(c, depth):
 
 def article_card(slug, tag, depth):
     r, title = rel(depth), article_title(slug)
+    img = ARTICLE_IMAGES.get(slug)
+    overlay = (f'<span class="nf-card__overlay"><span class="nf-card__kicker">{html.escape(tag)}</span>'
+               f'<span class="nf-card__title">{html.escape(title)}</span></span>'
+               if img else '')
     card = f'''<a class="nf-card" href="{r}arthra/{slug}/">
     <span class="nf-card__img">
-      {card_art(title, depth, kicker=tag)}
+      {card_art(title, depth, image=img, alt=title, kicker=tag)}
+      {overlay}
     </span>
     <span class="nf-card__panel">
       <p>{article_pretty_date(slug)} · {read_minutes(slug)}′</p>
@@ -319,9 +348,68 @@ def row(*, rid, title, cards, eyebrow="", all_href=None, all_label="Όλα", kin
 </section>'''
 
 
+_IMG_DIRS = [d for d in (
+    os.path.join(_C_ROOT, "lvri-new", "site", "assets", "img"),   # working tree
+    os.path.join(os.path.dirname(_C_ROOT), "assets", "img"),      # deployment repo
+    os.path.join(_C_ROOT, "assets", "img"),
+) if os.path.isdir(d)]
+
+_DIM_CACHE = {}
+
+
+def _img_size(name):
+    """Intrinsic size of an asset, straight from the file header — no Pillow, so
+    build.py keeps its "Python 3 and nothing else" promise. Returns None when the
+    file is missing or the format is one we do not parse, and the caller then
+    falls back to the nominal size it asked for."""
+    if name in _DIM_CACHE:
+        return _DIM_CACHE[name]
+    size = None
+    try:
+        path = next(p for p in (os.path.join(d, name) for d in _IMG_DIRS)
+                    if os.path.isfile(p))
+    except StopIteration:
+        _DIM_CACHE[name] = None
+        return None
+    try:
+        with open(path, "rb") as fh:
+            head = fh.read(32)
+            if head[:8] == b"\x89PNG\r\n\x1a\n":
+                size = struct.unpack(">II", head[16:24])
+            elif head[:2] == b"\xff\xd8":                      # JPEG: walk to a SOF marker
+                fh.seek(2)
+                while True:
+                    b = fh.read(1)
+                    if not b:
+                        break
+                    if b != b"\xff":
+                        continue
+                    while b == b"\xff":
+                        b = fh.read(1)
+                    marker = b[0]
+                    if marker in (0xD8, 0xD9) or 0xD0 <= marker <= 0xD7:
+                        continue
+                    seg = fh.read(2)
+                    if len(seg) < 2:
+                        break
+                    ln = struct.unpack(">H", seg)[0]
+                    if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+                        d = fh.read(5)
+                        size = (struct.unpack(">H", d[3:5])[0], struct.unpack(">H", d[1:3])[0])
+                        break
+                    fh.seek(ln - 2, 1)
+    except OSError:
+        size = None
+    _DIM_CACHE[name] = size
+    return size
+
+
 def pic(name, alt, w, h, depth, *, sizes="", eager=False):
     r = rel(depth)
     stem = name.rsplit(".", 1)[0]
+    real = _img_size(name)
+    if real:
+        w, h = real
     attrs = (f' width="{w}" height="{h}" alt="{html.escape(alt, quote=True)}"'
              f'{" sizes=" + chr(34) + sizes + chr(34) if sizes else ""}'
              f'{"" if eager else " loading=" + chr(34) + "lazy" + chr(34)} decoding="async"')

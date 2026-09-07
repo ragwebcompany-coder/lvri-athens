@@ -57,6 +57,7 @@ SITE = {
 CONDITIONS = [
     dict(slug="akrateia-ouron", legacy="akrateia-ouron", organ="bladder",
          title="Ακράτεια ούρων",
+         image="cond-akrateia.jpg",
          meta="Ακράτεια ούρων στις γυναίκες: οι τέσσερις τύποι, τα αίτια, ο ουροδυναμικός έλεγχος και οι θεραπείες — από ασκήσεις Kegel μέχρι laser και χειρουργείο.",
          lead="Αφορά περίπου το 20% των γυναικών στην Ελλάδα. Είναι σύμπτωμα, όχι ασθένεια — και στις περισσότερες περιπτώσεις αντιμετωπίζεται ριζικά.",
          plain="Χάνω ούρα χωρίς να το θέλω.",
@@ -65,6 +66,7 @@ CONDITIONS = [
 
     dict(slug="proptosi-mitras", legacy="proptosi-mitras", organ="uterus",
          title="Πρόπτωση μήτρας & κόλπου",
+         image="cond-proptosi.jpg",
          meta="Πρόπτωση μήτρας και κόλπου: πώς αναγνωρίζεται, τα στάδια κατά POP-Q και οι θεραπείες που αποκαθιστούν την ανατομία του πυελικού εδάφους.",
          lead="Όταν το μυϊκό σύστημα που στηρίζει την πύελο χαλαρώσει, τα όργανα κατεβαίνουν. Ταξινομείται σε στάδια κατά POP-Q.",
          plain="Νιώθω βάρος ή κάτι να προβάλλει.",
@@ -73,6 +75,7 @@ CONDITIONS = [
 
     dict(slug="ksirotita-kolpou", legacy="kolpiki-ksirotita", organ="vagina",
          title="Ξηρότητα κόλπου",
+         image="cond-ksirotita.jpg",
          meta="Ξηρότητα κόλπου: γιατί συμβαίνει, με ή χωρίς εμμηνόπαυση, και πώς την αντιμετωπίζουν το laser και οι ενέσιμες θεραπείες με υαλουρονικό.",
          lead="Δεν αφορά μόνο την εμμηνόπαυση. Ο κόλπος χάνει ελαστικότητα και κολλαγόνο, το pH αλκαλοποιείται και η χλωρίδα αλλάζει.",
          plain="Νιώθω ξηρότητα, κάψιμο ή πόνο στην επαφή.",
@@ -81,6 +84,7 @@ CONDITIONS = [
 
     dict(slug="kysteokili", legacy="kysteokhlh", organ="bladder",
          title="Κυστεοκήλη",
+         image="cond-kysteokili.jpg",
          meta="Κυστεοκήλη: όταν η ουροδόχος κύστη προβάλλει στο πρόσθιο τοίχωμα του κόλπου. Συμπτώματα, βαθμοί βαρύτητας και θεραπευτικές επιλογές.",
          lead="Η ουροδόχος κύστη προβάλλει προς το πρόσθιο τοίχωμα του κόλπου, συχνά μαζί με δυσκολία στην πλήρη κένωση.",
          plain="Δυσκολεύομαι να αδειάσω την κύστη μου.",
@@ -89,6 +93,7 @@ CONDITIONS = [
 
     dict(slug="orthokili-enterokili", legacy="orthokili-enterokili", organ="rectum",
          title="Ορθοκήλη & εντεροκήλη",
+         image="cond-orthokili.jpg",
          meta="Ορθοκήλη και εντεροκήλη: συμπτώματα, διαφορές και θεραπεία — από μη επεμβατικό laser στις αρχόμενες μορφές μέχρι πλήρη ανάπλαση κόλπου.",
          lead="Το ορθό ή το λεπτό έντερο πιέζει το οπίσθιο τοίχωμα του κόλπου. Προκαλεί δυσκοιλιότητα και επώδυνη επαφή.",
          plain="Δυσκολεύομαι στην κένωση, χρειάζομαι πίεση.",
@@ -101,6 +106,7 @@ CONDITIONS = [
 TREATMENTS = [
     dict(slug="anazoogonisi-kolpou", legacy="anazoogonisi-kolpou",
          title="Αναζωογόνηση κόλπου με laser",
+         image="treat-anazoogonisi.jpg",
          short="Renovalaser / IntimaLase",
          meta="Αναζωογόνηση κόλπου με laser: 2–3 ανώδυνες συνεδρίες των 15 λεπτών στο ιατρείο, χωρίς χρόνο ανάρρωσης, για ξηρότητα, ατροφία και ήπια χαλάρωση.",
          lead="Μη επεμβατικό laser στο ιατρείο. Αποκαθιστά την ελαστικότητα και την κολλαγόνωση του κόλπου.",
@@ -112,6 +118,7 @@ TREATMENTS = [
 
     dict(slug="g-shot", legacy="g-shot",
          title="G-Shot®",
+         image="treat-g-shot.jpg",
          short="Ενίσχυση σημείου G",
          meta="G-Shot®: ένεση υαλουρονικού υψηλού μοριακού βάρους στο σημείο G με τοπική αναισθησία. Επίσκεψη κάτω από 30 λεπτά, χωρίς χρόνο ανάρρωσης.",
          lead="Ένεση υαλουρονικού υψηλού μοριακού βάρους στο σημείο G, με τη βοήθεια ειδικού κολποσκοπίου.",
@@ -123,6 +130,7 @@ TREATMENTS = [
 
     dict(slug="aidoioplastiki", legacy="plastiki-aidoiou",
          title="Αιδοιοπλαστική",
+         image="treat-aidoioplastiki.jpg",
          short="Designer Laser Vaginoplasty®",
          meta="Αιδοιοπλαστική (Designer Laser Vaginoplasty®): αισθητική χειρουργική των αιδοιϊκών δομών, των χειλέων, του εφηβαίου και του περινέου.",
          lead="Αισθητική χειρουργική ενίσχυση των αιδοιϊκών δομών: μεγάλα και μικρά χείλη, εφηβαίο, περίνεο, είσοδος κόλπου.",
@@ -134,6 +142,7 @@ TREATMENTS = [
 
     dict(slug="laser-plastiki-kolpou", legacy="laser-kolpou",
          title="Laser πλαστική κόλπου",
+         image="treat-laser-plastiki.jpg",
          short="Laser Vaginal Rejuvenation®",
          meta="Laser πλαστική κόλπου (LVR®): χειρουργική σύσφιξη με CO₂ laser σε χειρουργείο ημέρας, χωρίς αφαίρεση ραμμάτων και με άμεση επιστροφή στα δικά σας.",
          lead="Χειρουργική σύσφιξη με CO₂ laser. Χειρουργείο ημέρας, χωρίς αφαίρεση ραμμάτων.",
@@ -146,6 +155,7 @@ TREATMENTS = [
 
     dict(slug="xeirourgiki-pyelikou-edafous", legacy="xeirourgiki-pyelikou-edafous",
          title="Χειρουργική πυελικού εδάφους",
+         image="treat-xeirourgiki.jpg",
          short="Total Vaginal Reconstruction",
          meta="Χειρουργική πυελικού εδάφους: πλήρης ανάπλαση κόλπου με επεμβατικό CO₂ laser για βαρύτερη κυστεοκήλη, ορθοκήλη και πρόπτωση μήτρας.",
          lead="Πλήρης ανάπλαση του κόλπου με επεμβατικό CO₂ laser για βαρύτερες ή παραμελημένες κήλες.",
@@ -242,6 +252,47 @@ ARTICLES = [
     ("akrateia-ouron-aitia-kai-therapeia", "Ακράτεια"),
     ("ksirotita-kolpou-kata-tin-emminopausi-to-laser-einai-h-lysi", "Ξηρότητα"),
 ]
+
+# ── Images ───────────────────────────────────────────────────────────────────
+# Each article's own featured image on lvriathens.com, re-cropped to 4:3.
+# A slug missing here falls back to the typographic title poster.
+ARTICLE_IMAGES = {
+    "poies-afora-i-ksirotita-kolpou-kai-pos-tin-antimetopizei-i-sygchroni-iatriki": "art-ksirotita-moderni.jpg",
+    "mathete-ta-panta-gia-tin-proptosi-mitras": "art-proptosi-panta.jpg",
+    "aidoioplastiki-tonoste-tin-aftopepoithisi-sas-allakste-tin-poiotita-tis-zois-sas": "art-aidoioplastiki.jpg",
+    "apolafste-tin-kathe-mera-kratiste-makria-tin-kolpiki-ksirotita": "art-ksirotita-kathimera.jpg",
+    "akrateia-ouron-aitia-diagnosi-therapeia": "art-akrateia-diagnosi.jpg",
+    "therapeia-akrateias-ouron-ksirotitas-sysfixis-kolpou": "art-akrateia-therapeia.jpg",
+    "ygieini-kata-tis-kolpitidas": "art-ygieini.jpg",
+    "proto-pagosmio-synedrio-laha-laser": "art-synedrio.jpg",
+    "to-laser-stin-sygxroni-epoxi": "art-laser-epoxi.jpg",
+    "plastiki-kolpou-o-dr-myrillas-apanta": "art-myrillas-apanta.jpg",
+    "plastiki-kolpou-vlaves-pou-diorthonei": "art-vlaves.jpg",
+    "arthro-gia-tin-kolpiki-proptosi": "art-kolpiki-proptosi.jpg",
+    "arthro-gia-tin-akrateia-ouron": "art-akrateia-arthro.jpg",
+    "akrateia-ouron-prospatheias": "art-akrateia-prospatheias.jpg",
+    "akrateia-ouron-aitia-kai-therapeia": "art-akrateia-aitia.jpg",
+    "ksirotita-kolpou-kata-tin-emminopausi-to-laser-einai-h-lysi": "art-emminopausi.jpg",
+}
+
+# English pages reuse the image of their Greek counterpart.
+EN_IMAGES = {
+    "the-clinic": "clinic-team.jpg",
+    "urinary-incontinence": "cond-akrateia.jpg",
+    "vaginal-atrophy": "en-atrophy.jpg",
+    "vaginal-dryness": "cond-ksirotita.jpg",
+    "vaginal-tightening-laser": "treat-laser-plastiki.jpg",
+    "designer-laser-vaginoplasty": "treat-aidoioplastiki.jpg",
+}
+
+# Hub pages (photographic hero behind the title).
+HUB_IMAGES = {
+    "therapeies/": "hub-therapeies.jpg",
+    "pathiseis/": "hub-pathiseis.jpg",
+    "arthra/": "hub-arthra.jpg",
+    "gallery/": "hub-gallery.jpg",
+    "odigos-symptomaton/": "hub-odigos.jpg",
+}
 
 VIDEOS = ["-SC1i2CREU4", "1xj1ngz2kAk", "3o-3ZxK0Lu0", "6q84Aew3qzc", "7SD3zuPclxU",
           "Bg40rl4uLJs", "CWBUzBTY9Ds", "DXTZMDa9ktY", "GNLicz9-bKI", "H2ZTHGWiWWo",

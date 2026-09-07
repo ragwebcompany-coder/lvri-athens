@@ -29,7 +29,8 @@ TOOLS = _find(os.path.join(ROOT, "lvri-new", "tools"),
 
 sys.path.insert(0, CONTENT)
 from data import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS,   # noqa: E402
-                  RED_FLAGS, KEGEL, VIDEOS, EN_PAGES, MONTHS)
+                  RED_FLAGS, KEGEL, VIDEOS, EN_PAGES, MONTHS,
+                  ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES)
 
 LEGACY = json.load(open(os.path.join(CONTENT, "legacy.json"), encoding="utf-8"))
 TODAY = datetime.date.today().isoformat()

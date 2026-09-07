@@ -14,7 +14,8 @@ sys.path.insert(0, os.path.join(HERE, "lib"))
 import content as C
 import ui as U
 from content import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS, RED_FLAGS,
-                     KEGEL, VIDEOS, EN_PAGES, CONDS, TREATS, LEGACY, TODAY, rel)
+                     KEGEL, VIDEOS, EN_PAGES, CONDS, TREATS, LEGACY, TODAY, rel,
+                     ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES)
 
 OUT = os.path.abspath(os.environ.get("LVRI2_OUT") or os.path.join(HERE, "site"))
 SRC = os.path.join(HERE, "src")
@@ -260,7 +261,7 @@ def build_treatment(t):
   <button class="btn btn--cta btn--sm" type="button" data-open="book" data-topic="{html.escape(t['title'])}">Ραντεβού</button></div>'''
 
     body = f'''
-<section class="page-hero">
+{U.hero_photo(t.get('image'), t['title'], d)}
   <div class="wrap">{crumb}
     <p class="hero__badge"><span class="k">{html.escape(t['short'])}</span>{U.lvl_badge(t['invasive'])}</p>
     <h1>{html.escape(t['title'])}</h1>
@@ -303,7 +304,7 @@ def build_treatments_hub():
       <h3><a href="{t['slug']}/">{html.escape(t['title'])}</a></h3>
       <p>{html.escape(t['lead'])}</p></article>''' for t in TREATMENTS)
     body = f'''
-<section class="page-hero">
+{U.hero_photo(HUB_IMAGES.get('therapeies/'), 'Θεραπείες', d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Πέντε διαδρομές</p>
     <h1>Θεραπείες</h1>
@@ -362,7 +363,7 @@ def build_condition(c):
 <div class="panel"><h3>Ζητήστε εκτίμηση</h3><p>Απαντάμε την ίδια ή την επόμενη εργάσιμη.</p>
   <button class="btn btn--cta btn--sm" type="button" data-open="book" data-topic="{html.escape(c['title'])}">Ραντεβού</button></div>'''
     body = f'''
-<section class="page-hero">
+{U.hero_photo(c.get('image'), c['title'], d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Πάθηση</p>
     <h1>{html.escape(c['title'])}</h1>
@@ -398,7 +399,7 @@ def build_conditions_hub():
     crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Παθήσεις", None)], d)
     cards = [U.condition_card(c, d) for c in CONDITIONS]
     body = f'''
-<section class="page-hero">
+{U.hero_photo(HUB_IMAGES.get('pathiseis/'), 'Παθήσεις', d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Πέντε καταστάσεις</p>
     <h1>Παθήσεις</h1>
@@ -472,7 +473,7 @@ def build_article(slug, tag):
           "mainEntityOfPage": f"{SITE['domain']}/arthra/{slug}/"}
     ld = {k: v for k, v in ld.items() if v is not None}
     body = f'''
-<section class="page-hero">
+{U.hero_photo(ARTICLE_IMAGES.get(slug), title, d)}
   <div class="wrap wrap--narrow">{crumb}
     <p class="eyebrow">{html.escape(tag)}</p>
     <h1>{html.escape(title)}</h1>
@@ -514,12 +515,15 @@ def build_articles_hub():
             tags.append(t)
     chips = '<button class="chip is-on" type="button" data-art="all">Όλα</button>' + "".join(
         f'<button class="chip" type="button" data-art="{html.escape(t)}">{html.escape(t)}</button>' for t in tags)
-    items = "".join(f'''<article class="tile" data-tag="{html.escape(t)}" data-title="{html.escape(C.article_title(s), quote=True)}">
-      <span class="tile__n">{html.escape(t)} · {C.article_pretty_date(s) or "—"}</span>
-      <h3><a href="{s}/">{html.escape(C.article_title(s))}</a></h3>
-      <p>{html.escape(C.plain(s, 150))}…</p></article>''' for s, t in ARTICLES)
+    items = "".join(U.photo_tile(
+        ARTICLE_IMAGES.get(s), C.article_title(s), d,
+        kicker=f'{html.escape(t)} · {C.article_pretty_date(s) or "—"}',
+        heading=f'<h3><a href="{s}/">{html.escape(C.article_title(s))}</a></h3>',
+        body=f'<p>{html.escape(C.plain(s, 150))}…</p>',
+        extra_attrs=f' data-tag="{html.escape(t)}" data-title="{html.escape(C.article_title(s), quote=True)}"',
+    ) for s, t in ARTICLES)
     body = f'''
-<section class="page-hero">
+{U.hero_photo(HUB_IMAGES.get('arthra/'), 'Άρθρα', d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Αρχείο</p>
     <h1>Άρθρα</h1>
@@ -565,7 +569,7 @@ def build_guide_page():
                     for i, s in enumerate(GUIDE_STEPS))
     flags = "".join(f"<li>{html.escape(f)}</li>" for f in RED_FLAGS)
     body = f'''
-<section class="page-hero">
+{U.hero_photo(HUB_IMAGES.get('odigos-symptomaton/'), 'Σαρωτής συμπτωμάτων', d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Διαδραστικό εργαλείο</p>
     <h1>Σαρωτής συμπτωμάτων</h1>
@@ -675,7 +679,7 @@ def build_gallery():
     v_cards = [U.video_card(v, d, i + 1) for i, v in enumerate(VIDEOS)]
     crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Gallery", None)], d)
     body = f'''
-<section class="page-hero">
+{U.hero_photo(HUB_IMAGES.get('gallery/'), 'Gallery', d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Αρχείο</p>
     <h1>Gallery</h1>
@@ -990,11 +994,12 @@ and injectable treatments.</p>
 and conditions in English; the full site is in
 <a href="../">Greek</a>.</p>
 """
-    tiles = "".join(f'''<article class="tile">
-      <h3><a href="{new}/">{html.escape(title)}</a></h3></article>'''
-                    for new, _legacy, title in EN_PAGES)
+    tiles = "".join(U.photo_tile(
+        EN_IMAGES.get(new), title, 1, kicker="English",
+        heading=f'<h3><a href="{new}/">{html.escape(title)}</a></h3>',
+    ) for new, _legacy, title in EN_PAGES)
     body = f'''
-<section class="page-hero">
+{U.hero_photo('clinic-team.jpg', 'LVRI Athens', 1)}
   <div class="wrap">
     <p class="eyebrow">Athens, Greece</p>
     <h1>Laser Vaginal Rejuvenation Institute of Athens</h1>
@@ -1031,7 +1036,7 @@ def build_en_page(new, legacy, title):
     body_html = anchor_headings(body_html)
     faq_html, _ld = U.faq_block(faq_title, faq_pairs)
     body = f'''
-<section class="page-hero">
+{U.hero_photo(EN_IMAGES.get(new), title, 2)}
   <div class="wrap wrap--narrow">
     <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="../">English</a></li>
       <li aria-current="page">{html.escape(title)}</li></ol></nav>
