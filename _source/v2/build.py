@@ -135,15 +135,10 @@ def page_scripts(depth):
 
 # ── page shell ───────────────────────────────────────────────────────────────
 def shell(*, path, title, desc, depth, body, active="", jsonld=None, lang="el",
-          page_kind="page", page_title=None, body_class=""):
+          body_class=""):
     ld = [base_graph()] + list(jsonld or [])
-    attrs = (f' data-page="{path}" data-kind="{page_kind}" '
-             f'data-title="{html.escape(page_title or title, quote=True)}"') if path else ""
     head = U.head(title=title, desc=desc, depth=depth, canonical=path, lang=lang,
                   jsonld=ld, body_class=body_class)
-    # inject the page identity onto <body> for the history feature
-    head = head.replace(f'<body class="{body_class}" data-depth="{depth}"',
-                        f'<body class="{body_class}" data-depth="{depth}"{attrs}')
     return (head + U.topbar(depth, active) + body + U.footer(depth)
             + U.tail(depth, extra_js=page_scripts(depth), lang=lang))
 
@@ -160,19 +155,6 @@ def build_home():
 
     body = U.billboard(d) + f"""
 <main id="main">
-  <section class="nf-row" data-row data-continue hidden id="continue">
-    <div class="nf-row__head">
-      <h2 class="nf-row__title">Συνεχίστε από εκεί που μείνατε</h2>
-      <div class="nf-row__nav">
-        <button class="nf-row__btn row__nav row__nav--l" type="button" aria-label="Προηγούμενα" tabindex="-1">{U.I['left']}</button>
-        <button class="nf-row__btn row__nav row__nav--r" type="button" aria-label="Επόμενα">{U.I['right']}</button>
-      </div>
-    </div>
-    <div class="nf-row__viewport row__track" tabindex="0" role="list" aria-label="Πρόσφατα">
-      <div class="nf-row__track"></div>
-    </div>
-  </section>
-
   {U.row(rid="r-treat", title="Θεραπείες", eyebrow="Top 5", cards=t_cards,
          all_href="therapeies/", all_label="Όλες", kind="nf-row--top")}
 
@@ -214,8 +196,7 @@ def build_home():
 </main>"""
     desc = C.meta_desc("home", "Κέντρο κοσμητικής γυναικολογίας και επανορθωτικής χειρουργικής πυέλου στην Αθήνα.")
     write("index.html", shell(path="", title="LVRI Athens — Laser πλαστική κόλπου & πυελικό έδαφος, Αθήνα",
-                              desc=desc, depth=d, body=body, active="", page_kind="home",
-                              page_title="Αρχική", body_class="is-home"))
+                              desc=desc, depth=d, body=body, active="", body_class="is-home"))
     register("", prio="1.0", freq="weekly")
     index("", title="Αρχική", desc="LVRI Athens — θεραπείες, παθήσεις και εργαλεία", kind="page",
           kw="αρχικη home lvri athens")
@@ -288,7 +269,7 @@ def build_treatment(t):
 </main>'''
     write(f"therapeies/{slug}/index.html",
           shell(path=f"therapeies/{slug}/", title=C.seo_title(t["title"]), desc=html.escape(t["meta"][:158], quote=True),
-                depth=d, body=body, active="therapeies", page_kind="treatment", page_title=t["title"],
+                depth=d, body=body, active="therapeies",
                 jsonld=[treatment_ld(t), crumb_ld] + ([faq_ld] if faq_ld else [])))
     register(f"therapeies/{slug}/", prio="0.9")
     index(f"therapeies/{slug}/", title=t["title"], desc=t["short"] + " · " + U.INVASIVE[t["invasive"]][0], kind="treatment",
@@ -327,7 +308,7 @@ def build_treatments_hub():
 </main>'''
     write("therapeies/index.html", shell(path="therapeies/", title="Θεραπείες | LVRI Athens",
           desc="Οι πέντε θεραπείες του LVRI Athens για ακράτεια, πρόπτωση, ξηρότητα και χαλάρωση κόλπου — δίπλα δίπλα, με χώρο, αναισθησία, συνεδρίες και ανάρρωση.",
-          depth=d, body=body, active="therapeies", page_kind="page", page_title="Θεραπείες",
+          depth=d, body=body, active="therapeies",
           jsonld=[crumb_ld]))
     register("therapeies/", prio="0.9", freq="weekly")
     index("therapeies/", title="Θεραπείες", desc="Και οι πέντε, με σύγκριση", kind="page",
@@ -387,7 +368,7 @@ def build_condition(c):
     write(f"pathiseis/{slug}/index.html",
           shell(path=f"pathiseis/{slug}/", title=C.seo_title(c["title"]),
                 desc=html.escape(c["meta"][:158], quote=True), depth=d, body=body,
-                active="pathiseis", page_kind="condition", page_title=c["title"],
+                active="pathiseis",
                 jsonld=[condition_ld(c), crumb_ld] + ([faq_ld] if faq_ld else [])))
     register(f"pathiseis/{slug}/", prio="0.9")
     index(f"pathiseis/{slug}/", title=c["title"], desc=c["plain"], kind="condition",
@@ -419,7 +400,7 @@ def build_conditions_hub():
 </main>'''
     write("pathiseis/index.html", shell(path="pathiseis/", title="Παθήσεις πυελικού εδάφους | LVRI Athens",
           desc="Ακράτεια ούρων, πρόπτωση μήτρας, κυστεοκήλη, ορθοκήλη και ξηρότητα κόλπου: τι είναι, πώς αναγνωρίζονται και ποιες θεραπείες τις αντιμετωπίζουν.",
-          depth=d, body=body, active="pathiseis", page_kind="page", page_title="Παθήσεις",
+          depth=d, body=body, active="pathiseis",
           jsonld=[crumb_ld]))
     register("pathiseis/", prio="0.9", freq="weekly")
     index("pathiseis/", title="Παθήσεις", desc="Πέντε καταστάσεις και ο χάρτης της πυέλου", kind="page",
@@ -499,7 +480,6 @@ def build_article(slug, tag):
     write(f"arthra/{slug}/index.html",
           shell(path=f"arthra/{slug}/", title=C.seo_title(title),
                 desc=C.meta_desc(slug), depth=d, body=body, active="arthra",
-                page_kind="article", page_title=title,
                 jsonld=[ld, crumb_ld] + ([faq_ld] if faq_ld else [])))
     register(f"arthra/{slug}/", prio="0.6")
     index(f"arthra/{slug}/", title=title, desc=f"{tag} · {pretty}" if pretty else tag,
@@ -552,7 +532,7 @@ chips.forEach(function(c){{c.addEventListener('click',function(){{chips.forEach(
 </script>'''
     write("arthra/index.html", shell(path="arthra/", title="Άρθρα | LVRI Athens",
           desc="Κείμενα του ιατρείου για την ακράτεια ούρων, την πρόπτωση, την ξηρότητα κόλπου και τη θεραπεία με laser.",
-          depth=d, body=body, active="arthra", page_kind="page", page_title="Άρθρα", jsonld=[crumb_ld]))
+          depth=d, body=body, active="arthra", jsonld=[crumb_ld]))
     register("arthra/", prio="0.7", freq="weekly")
     index("arthra/", title="Άρθρα", desc=f"{len(ARTICLES)} κείμενα του ιατρείου", kind="page",
           kw="αρθρα blog κειμενα")
@@ -597,7 +577,7 @@ def build_guide_page():
     write("odigos-symptomaton/index.html", shell(path="odigos-symptomaton/",
           title="Σαρωτής συμπτωμάτων | LVRI Athens",
           desc="Τέσσερα βήματα σε καθημερινή γλώσσα δείχνουν με ποιες παθήσεις του πυελικού εδάφους ταιριάζουν τα συμπτώματά σας. Υπολογισμός τοπικά στη συσκευή σας.",
-          depth=d, body=body, active="odigos", page_kind="tool", page_title="Σαρωτής συμπτωμάτων",
+          depth=d, body=body, active="odigos",
           jsonld=[crumb_ld]))
     register("odigos-symptomaton/", prio="0.8")
     index("odigos-symptomaton/", title="Σαρωτής συμπτωμάτων", desc="Διαδραστικό εργαλείο 4 βημάτων",
@@ -638,7 +618,7 @@ def build_kegel_page():
 </main>'''
     write("askiseis-kegel/index.html", shell(path="askiseis-kegel/", title="Ασκήσεις Kegel — προπονητής | LVRI Athens",
           desc="Τρία προγράμματα Kegel με οπτικό ρυθμιστή σφίξιμο–κράτημα–χαλάρωση και μετρητή συνεδριών. Οδηγίες για σωστή εκτέλεση.",
-          depth=d, body=body, active="", page_kind="tool", page_title="Ασκήσεις Kegel", jsonld=[crumb_ld]))
+          depth=d, body=body, active="", jsonld=[crumb_ld]))
     register("askiseis-kegel/", prio="0.7")
     index("askiseis-kegel/", title="Ασκήσεις Kegel", desc="Προπονητής με 3 προγράμματα", kind="page",
           kw="kegel ασκησεις πυελικο εδαφος προπονηση")
@@ -661,7 +641,7 @@ def build_mylist_page():
 </div></section>{U.cta_band(d)}</main>'''
     write("i-lista-mou/index.html", shell(path="i-lista-mou/", title="Η λίστα μου | LVRI Athens",
           desc="Οι θεραπείες, παθήσεις και άρθρα που κρατήσατε. Αποθηκεύονται τοπικά στη συσκευή σας.",
-          depth=d, body=body, active="", page_kind="tool", page_title="Η λίστα μου", jsonld=[crumb_ld]))
+          depth=d, body=body, active="", jsonld=[crumb_ld]))
     register("i-lista-mou/", prio="0.3")
 
 
@@ -705,7 +685,7 @@ def build_gallery():
 </main>'''
     write("gallery/index.html", shell(path="gallery/", title="Gallery — φωτογραφίες & βίντεο | LVRI Athens",
           desc="Φωτογραφίες περιστατικών πριν και μετά και βίντεο από τηλεοπτικές εκπομπές και ιατρικά συνέδρια. LVRI Athens, Βύρωνας — Αθήνα.",
-          depth=d, body=body, active="gallery", page_kind="page", page_title="Gallery", jsonld=[crumb_ld]))
+          depth=d, body=body, active="gallery", jsonld=[crumb_ld]))
     register("gallery/", prio="0.6")
     index("gallery/", title="Gallery", desc="Φωτογραφίες περιστατικών και βίντεο", kind="page",
           kw="gallery φωτογραφιες βιντεο πριν μετα")
@@ -754,7 +734,7 @@ def build_clinic():
 {U.cta_band(d)}</main>'''
     write("i-kliniki/index.html", shell(path="i-kliniki/", title="Η κλινική | LVRI Athens",
           desc=C.meta_desc("h-kliniki", "Το LVRI Athens στον Βύρωνα: κοσμητική γυναικολογία και επανορθωτική χειρουργική πυέλου με laser."),
-          depth=d, body=body, active="kliniki", page_kind="page", page_title="Η κλινική",
+          depth=d, body=body, active="kliniki",
           jsonld=[crumb_ld] + ([faq_ld] if faq_ld else [])))
     register("i-kliniki/", prio="0.8")
     index("i-kliniki/", title="Η κλινική", desc="Ποιοι είμαστε, από το 2008", kind="page",
@@ -786,8 +766,7 @@ def build_doctor(slug, legacy, name, role, photo, blurb):
   </aside>
 </div>{faq_html}{U.cta_band(d)}</main>'''
     write(f"{slug}/index.html", shell(path=f"{slug}/", title=C.seo_title(name),
-          desc=C.meta_desc(legacy, blurb), depth=d, body=body, active="", page_kind="page",
-          page_title=name, jsonld=[crumb_ld] + ([faq_ld] if faq_ld else [])))
+          desc=C.meta_desc(legacy, blurb), depth=d, body=body, active="", jsonld=[crumb_ld] + ([faq_ld] if faq_ld else [])))
     register(f"{slug}/", prio="0.7")
     index(f"{slug}/", title=name, desc=role, kind="page", kw=name + " " + role + " " + blurb)
 
@@ -867,7 +846,7 @@ def build_contact():
 </main>'''
     write("epikoinonia/index.html", shell(path="epikoinonia/", title="Επικοινωνία — Βύρωνας, Αθήνα | LVRI Athens",
           desc=f"LVRI Athens: {SITE['address']}, {SITE['postcode']} {SITE['locality']}. Τηλέφωνο {SITE['phone']}, Δευτέρα–Παρασκευή 09:00–17:00 και Σάββατο 09:00–15:00.",
-          depth=d, body=body, active="epikoinonia", page_kind="page", page_title="Επικοινωνία",
+          depth=d, body=body, active="epikoinonia",
           jsonld=[contact_ld, crumb_ld] + ([faq_ld] if faq_ld else [])))
     register("epikoinonia/", prio="0.9")
     index("epikoinonia/", title="Επικοινωνία", desc=f"{SITE['address']} · {SITE['phone']}", kind="page",
@@ -887,7 +866,6 @@ def build_terms():
     <h2 id="local">Τι κρατά αυτός ο ιστότοπος στη συσκευή σας</h2>
     <ul>
       <li><b>Η λίστα μου</b> — όσα κρατήσατε με το «+».</li>
-      <li><b>Ιστορικό ανάγνωσης</b> — οι τελευταίες σελίδες που ανοίξατε, για τη σειρά «Συνεχίστε».</li>
       <li><b>Συνεδρίες Kegel</b> — ο μετρητής ολοκληρωμένων συνεδριών.</li>
       <li><b>Επιλογές εμφάνισης</b> — κίνηση, αντίθεση, εναλλαγή hero.</li>
       <li><b>Συγκατάθεση</b> — για τα cookies και για τις κλινικές φωτογραφίες.</li>
@@ -899,7 +877,7 @@ def build_terms():
 </div></main>'''
     write("oroi-chrisis/index.html", shell(path="oroi-chrisis/", title="Όροι χρήσης & πολιτική απορρήτου | LVRI Athens",
           desc="Όροι χρήσης, πολιτική απορρήτου και τι αποθηκεύει ο ιστότοπος τοπικά στη συσκευή σας.",
-          depth=d, body=body, active="", page_kind="page", page_title="Όροι χρήσης", jsonld=[crumb_ld]))
+          depth=d, body=body, active="", jsonld=[crumb_ld]))
     register("oroi-chrisis/", prio="0.2", freq="yearly")
 
 
@@ -961,9 +939,6 @@ def footer_en(depth):
 def en_shell(*, path, title, desc, depth, body, active=""):
     head = U.head(title=title, desc=desc, depth=depth, canonical=path, lang="en",
                   jsonld=[base_graph()])
-    head = head.replace(f'<body class="" data-depth="{depth}"',
-                        f'<body class="" data-depth="{depth}" data-page="{path}" data-kind="page" '
-                        f'data-title="{html.escape(title, quote=True)}"')
     return head + topbar_en(depth, active) + body + footer_en(depth) + \
         U.tail(depth, extra_js=page_scripts(depth), lang="en")
 

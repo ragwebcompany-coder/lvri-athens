@@ -233,8 +233,6 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
   opacity:0;pointer-events:none;transition:opacity .3s ease .05s}
 .nf-card__panel p{margin:0;font-size:.8rem;color:var(--dim);line-height:1.45}
 .nf-card__panel .btn{flex:none}
-.nf-card__resume{position:absolute;z-index:4;left:0;right:0;bottom:0;height:3px;background:#ffffff26}
-.nf-card__resume::after{content:"";display:block;height:100%;width:calc(var(--p,0)*100%);background:var(--red)}
 /* the label follows the icons, so target the svgs by type rather than position */
 .save-inline svg:nth-of-type(2){display:none}
 .save-inline[aria-pressed=true]{background:var(--red);border-color:var(--red);color:#fff}

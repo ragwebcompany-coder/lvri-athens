@@ -21,7 +21,7 @@ var TXT = {
         reset: "Μηδενίστηκε", start: "Έναρξη", pause: "Παύση", ready: "Έτοιμη;",
         done: "Τέλος", phases: ["Σφίξτε", "Κρατήστε", "Χαλαρώστε"],
         commands: "Εντολές", typeMore: "Γράψτε τουλάχιστον 2 χαρακτήρες ή διαλέξτε μια εντολή.",
-        noMatch: "Καμία αντιστοιχία.", continueTxt: "Συνεχίστε", readPct: "% διαβασμένο",
+        noMatch: "Καμία αντιστοιχία.",
         emptyList: "Η λίστα σας είναι άδεια", removeBtn: "Αφαίρεση",
         kinds: { treatment: "Θεραπεία", condition: "Πάθηση", article: "Άρθρο", page: "Σελίδα" },
         groups: { treatment: "Θεραπείες", condition: "Παθήσεις", article: "Άρθρα", page: "Σελίδες" } },
@@ -33,14 +33,14 @@ var TXT = {
         reset: "Reset", start: "Start", pause: "Pause", ready: "Ready?",
         done: "Done", phases: ["Squeeze", "Hold", "Release"],
         commands: "Commands", typeMore: "Type at least 2 characters, or pick a command.",
-        noMatch: "No match.", continueTxt: "Continue", readPct: "% read",
+        noMatch: "No match.",
         emptyList: "Your list is empty", removeBtn: "Remove",
         kinds: { treatment: "Treatment", condition: "Condition", article: "Article", page: "Page" },
         groups: { treatment: "Treatments", condition: "Conditions", article: "Articles", page: "Pages" } }
 }[LANG];
 
 /* ── storage ─────────────────────────────────────────────── */
-var K = { list: "lvri2:list", hist: "lvri2:hist", kegel: "lvri2:kegel", ck: "lvri2:ck",
+var K = { list: "lvri2:list", kegel: "lvri2:kegel", ck: "lvri2:ck",
           gal: "lvri2:gal", motion: "lvri2:motion", contrast: "lvri2:contrast",
           autoplay: "lvri2:autoplay", intro: "lvri2:intro" };
 function get(k, fb) { try { var v = localStorage.getItem(k); return v == null ? fb : JSON.parse(v); }
@@ -259,43 +259,6 @@ D.addEventListener("click", function (e) {
 });
 syncSaves(); listCount();
 
-/* ── continue where you left off ─────────────────────────── */
-(function history() {
-  var page = D.body.dataset.page;
-  if (page) {
-    var h = get(K.hist, []); if (!Array.isArray(h)) h = [];
-    h = h.filter(function (x) { return x.u !== page; });
-    h.unshift({ u: page, t: D.body.dataset.title || D.title, k: D.body.dataset.kind || "page",
-                ts: Date.now(), p: 0 });
-    set(K.hist, h.slice(0, 14));
-    var deepest = 0;
-    W.addEventListener("scroll", function () {
-      var hh = D.documentElement.scrollHeight - W.innerHeight;
-      if (hh <= 0) return;
-      var p = Math.min(1, (W.scrollY || 0) / hh);
-      if (p > deepest + .04) {
-        deepest = p;
-        var cur = get(K.hist, []);
-        if (cur[0] && cur[0].u === page) { cur[0].p = +p.toFixed(2); set(K.hist, cur); }
-      }
-    }, { passive: true });
-  }
-  var mount = $("[data-continue]");
-  if (mount) {
-    var items = (get(K.hist, []) || []).filter(function (x) { return x.u && x.u !== page; }).slice(0, 10);
-    if (!items.length) { mount.remove(); return; }
-    mount.querySelector(".nf-row__track").innerHTML = items.map(function (x) {
-      return '<div class="nf-slide"><a class="nf-card" href="' + base + x.u + '">' +
-        '<span class="nf-card__img"><span class="nf-card__blank"><span>' +
-        esc((x.t || '?').slice(0, 2).toUpperCase()) + '</span></span>' +
-        '<span class="nf-card__overlay"><span class="nf-card__kicker">' +
-        (x.p ? Math.round(x.p * 100) + TXT.readPct : TXT.continueTxt) + '</span>' +
-        '<span class="nf-card__title">' + esc(x.t) + '</span></span>' +
-        '<span class="nf-card__resume" style="--p:' + (x.p || 0) + '"></span></span></a></div>';
-    }).join("");
-    mount.hidden = false;
-  }
-})();
 function esc(s) { var d = D.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; }
 
 /* render the saved list page */
