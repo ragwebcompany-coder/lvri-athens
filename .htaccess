@@ -33,7 +33,7 @@ RedirectMatch 301 ^/proptosi\-mitras/?$ /pathiseis/proptosi-mitras/
 RedirectMatch 301 ^/proto\-pagosmio\-synedrio\-laha\-laser/?$ /arthra/proto-pagosmio-synedrio-laha-laser/
 RedirectMatch 301 ^/therapeia\-akrateias\-ouron\-ksirotitas\-sysfixis\-kolpou/?$ /arthra/therapeia-akrateias-ouron-ksirotitas-sysfixis-kolpou/
 RedirectMatch 301 ^/to\-laser\-stin\-sygxroni\-epoxi/?$ /arthra/to-laser-stin-sygxroni-epoxi/
-RedirectMatch 301 ^/video\-gallery/?$ /gallery/
+RedirectMatch 301 ^/video\-gallery/?$ /vinteo/
 RedirectMatch 301 ^/xeirourgiki\-pyelikou\-edafous/?$ /therapeies/xeirourgiki-pyelikou-edafous/
 RedirectMatch 301 ^/ygieini\-kata\-tis\-kolpitidas/?$ /arthra/ygieini-kata-tis-kolpitidas/
 

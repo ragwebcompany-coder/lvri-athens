@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Markup layer: head, chrome, overlays, cards, rows, sections.
 
-Design rules for this version — deliberately narrow, so the site reads as
+Design rules for this version, deliberately narrow, so the site reads as
 designed rather than generated:
   · one accent colour, taken from the clinic's own uniforms (#4a3ac9)
   · one serif (Literata) for anything that is a title, one grotesk (Inter) for
@@ -11,7 +11,7 @@ designed rather than generated:
 """
 import re, os, json, html, struct
 from content import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS, RED_FLAGS,
-                     KEGEL, VIDEOS, CONDS, TREATS, rel, article_title,
+                     KEGEL, CONDS, TREATS, rel, article_title,
                      article_pretty_date, read_minutes, plain, TODAY,
                      ARTICLE_IMAGES)
 from content import ROOT as _C_ROOT
@@ -108,6 +108,7 @@ NAV = [
     ("therapeies/", "Θεραπείες", "therapeies"),
     ("pathiseis/", "Παθήσεις", "pathiseis"),
     ("odigos-symptomaton/", "Οδηγός συμπτωμάτων", "odigos"),
+    ("vinteo/", "Βίντεο", "vinteo"),
     ("gallery/", "Gallery", "gallery"),
     ("arthra/", "Άρθρα", "arthra"),
     ("i-kliniki/", "Η κλινική", "kliniki"),
@@ -117,7 +118,7 @@ NAV = [
 
 def wordmark(depth, href=""):
     r = rel(depth)
-    return (f'<a class="tb__logo" href="{r}{href}" aria-label="LVRI Athens — αρχική">'
+    return (f'<a class="tb__logo" href="{r}{href}" aria-label="LVRI Athens, αρχική">'
             f'<span class="tb__word">LVRI<em>Athens</em></span></a>')
 
 
@@ -131,7 +132,7 @@ def topbar(depth, active=""):
     {wordmark(depth)}
     <nav class="tb__nav" aria-label="Κύρια πλοήγηση">{links}</nav>
     <div class="tb__right">
-      <button class="tb__ic" type="button" data-open="palette" aria-label="Αναζήτηση — Ctrl ή ⌘ και K">{I['search']}</button>
+      <button class="tb__ic" type="button" data-open="palette" aria-label="Αναζήτηση, Ctrl ή ⌘ και K">{I['search']}</button>
       <a class="tb__ic" href="{r}i-lista-mou/" aria-label="Η λίστα μου">{I['bookmark']}<span class="tb__badge" data-mylist-count hidden>0</span></a>
       <button class="tb__ic" type="button" data-open="settings" aria-label="Ρυθμίσεις εμφάνισης">{I['sliders']}</button>
       <a class="tb__call" href="tel:{SITE['phone_href']}">{I['phone']}<span>{SITE['phone']}</span></a>
@@ -175,6 +176,7 @@ def footer(depth):
       <li><a href="{r}odigos-symptomaton/">Οδηγός συμπτωμάτων</a></li>
       <li><a href="{r}askiseis-kegel/">Ασκήσεις Kegel</a></li>
       <li><a href="{r}therapeies/#compare">Σύγκριση θεραπειών</a></li>
+      <li><a href="{r}vinteo/">Βίντεο</a></li>
       <li><a href="{r}gallery/">Gallery</a></li>
       <li><a href="{r}i-lista-mou/">Η λίστα μου</a></li>
       <li><a href="{r}dr-mirillas/">Dr. Κ. Μυρίλλας</a></li>
@@ -189,7 +191,7 @@ def footer(depth):
     </div>
   </div>
   <div class="wrap ft__base">
-    <p>© {TODAY[:4]} {SITE['name']} — {SITE['legal']}</p>
+    <p>© {TODAY[:4]} {SITE['name']} · {SITE['legal']}</p>
     <p><a href="{r}oroi-chrisis/">Όροι χρήσης & απόρρητο</a> · <a href="{r}en/">English</a>
       · Made by <a href="{SITE['credit']['url']}" rel="noopener" target="_blank">{SITE['credit']['name']}</a></p>
   </div>
@@ -215,7 +217,7 @@ def save_inline(item_id, title, url, kind, label="Αποθήκευση"):
 
 def card_art(title, depth, *, image=None, alt="", w=800, h=600, kicker=""):
     """Real photography when the clinic has it, a typographic title poster when it does
-    not. Add an `image` key to the entry in data.py and the photograph takes over —
+    not. Add an `image` key to the entry in data.py and the photograph takes over,
     the poster is the placeholder, not the design."""
     if image:
         return pic(image, alt or title, w, h, depth)
@@ -312,18 +314,34 @@ def article_card(slug, tag, depth):
     return _slide(card, _save_btn(slug, title, f"arthra/{slug}/", 'article'))
 
 
-def video_card(vid, depth, idx):
-    card = f'''<button class="nf-card" type="button" data-video="{vid}" aria-label="Αναπαραγωγή βίντεο {idx}">
+def video_time(secs):
+    """«8:41» ή «1:03:12», ό,τι χρειάζεται η διάρκεια."""
+    h, m, sec = secs // 3600, secs // 60 % 60, secs % 60
+    return f"{h}:{m:02d}:{sec:02d}" if h else f"{m}:{sec:02d}"
+
+
+def video_card(v, depth, *, kicker=""):
+    """Κάρτα βίντεο. Δεν φορτώνει iframe: μόνο το thumbnail του YouTube, και το
+    κλικ ανοίγει τον player σε overlay (js: [data-video])."""
+    title, secs, year = v["title"], v.get("secs") or 0, (v.get("date") or "")[:4]
+    dur = video_time(secs) if secs else ""
+    meta = " · ".join(x for x in (year, dur) if x)
+    return _slide(f'''<button class="nf-card nf-card--video" type="button" data-video="{v["id"]}"
+    aria-label="Αναπαραγωγή: {html.escape(title, quote=True)}">
     <span class="nf-card__img">
-      <img src="https://i.ytimg.com/vi/{vid}/hqdefault.jpg" alt="" loading="lazy" decoding="async" width="480" height="360">
+      <img src="https://i.ytimg.com/vi/{v["id"]}/hqdefault.jpg" alt="" loading="lazy"
+           decoding="async" width="480" height="360">
       <span class="nf-card__play" aria-hidden="true"><span>{I['play']}</span></span>
+      {f'<span class="nf-card__dur">{dur}</span>' if dur else ''}
       <span class="nf-card__overlay">
-        <span class="nf-card__kicker">LVRI Originals</span>
-        <span class="nf-card__title">Βίντεο {idx:02d} — Dr. Κ. Μυρίλλας</span>
+        <span class="nf-card__kicker">{html.escape(kicker or year or "Βίντεο")}</span>
+        <span class="nf-card__title">{html.escape(title)}</span>
       </span>
     </span>
-  </button>'''
-    return _slide(card)
+    <span class="nf-card__panel">
+      <p>{html.escape(meta)}</p><span class="btn btn--sm btn--line">Παίξτε</span>
+    </span>
+  </button>''')
 
 
 def row(*, rid, title, cards, eyebrow="", all_href=None, all_label="Όλα", kind="",
@@ -358,7 +376,7 @@ _DIM_CACHE = {}
 
 
 def _img_size(name):
-    """Intrinsic size of an asset, straight from the file header — no Pillow, so
+    """Intrinsic size of an asset, straight from the file header, no Pillow, so
     build.py keeps its "Python 3 and nothing else" promise. Returns None when the
     file is missing or the format is one we do not parse, and the caller then
     falls back to the nominal size it asked for."""
@@ -432,7 +450,7 @@ def billboard(depth):
         <span class="hero-badge-text">Κοσμητική γυναικολογία στην Αθήνα από το {SITE['founded']}</span>
       </div>
       <p class="hero-description">Ακράτεια ούρων, πρόπτωση, ξηρότητα και χαλάρωση κόλπου.
-        Πέντε θεραπείες με laser — από μια ανώδυνη συνεδρία στο ιατρείο μέχρι πλήρη
+        Πέντε θεραπείες με laser, από μια ανώδυνη συνεδρία στο ιατρείο μέχρι πλήρη
         ανάπλαση στο χειρουργείο.</p>
       <div class="hero-buttons">
         <button class="btn btn--cta" type="button" data-open="book">{I['play']}Ζητήστε ραντεβού</button>
@@ -471,7 +489,7 @@ def scanner_section(depth):
       <h2>Οδηγός συμπτωμάτων</h2>
       <p class="lede">Τέσσερις ερωτήσεις σε καθημερινή γλώσσα. Στο τέλος βλέπετε με ποιες
         παθήσεις ταιριάζει αυτό που περιγράψατε και ποιες θεραπείες συζητούνται συνήθως.
-        Ο υπολογισμός γίνεται στη συσκευή σας — καμία απάντηση δεν αποστέλλεται.</p>
+        Ο υπολογισμός γίνεται στη συσκευή σας. Καμία απάντηση δεν αποστέλλεται.</p>
       <p style="margin-top:1.8rem">
         <button class="btn btn--cta btn--lg" type="button" data-open="scanner">Ξεκινήστε</button>
       </p>
@@ -486,7 +504,7 @@ ORGANS = {
     "bladder": ("Ουροδόχος κύστη", "Γεμίζει και αδειάζει. Όταν ο σφιγκτήρας ή η στήριξη χαλαρώσει, εμφανίζεται διαφυγή ούρων ή κυστεοκήλη."),
     "uterus": ("Μήτρα", "Στηρίζεται από συνδέσμους και το πυελικό έδαφος. Όταν αυτά υποχωρούν, κατεβαίνει προς τον κόλπο."),
     "vagina": ("Κόλπος", "Ελαστικός σωλήνας με κολλαγόνο και βλεννογόνο. Χάνει ελαστικότητα με τον τοκετό, την ηλικία και την πτώση οιστρογόνων."),
-    "rectum": ("Ορθό", "Πιέζει το οπίσθιο τοίχωμα του κόλπου όταν το πυελικό έδαφος αδυνατίσει — ορθοκήλη."),
+    "rectum": ("Ορθό", "Πιέζει το οπίσθιο τοίχωμα του κόλπου όταν το πυελικό έδαφος αδυνατίσει: ορθοκήλη."),
     "floor": ("Πυελικό έδαφος", "Το μυϊκό «τραμπολίνο» που κρατά τα όργανα στη θέση τους. Οι ασκήσεις Kegel το γυμνάζουν."),
 }
 
@@ -603,7 +621,7 @@ def compare_section(depth):
 # The clinical copy stays Greek; the interface around it speaks the page's language.
 T = {
  "el": dict(
-  search_label="Αναζήτηση — Ctrl ή ⌘ και K", search_ph="Πάθηση, θεραπεία, άρθρο ή εντολή…",
+  search_label="Αναζήτηση, Ctrl ή ⌘ και K", search_ph="Πάθηση, θεραπεία, άρθρο ή εντολή…",
   results="Αποτελέσματα", nav="πλοήγηση", open="άνοιγμα", toggle="εναλλαγή",
   guide="Οδηγός συμπτωμάτων", close="Κλείσιμο", back="Πίσω", next="Συνέχεια",
   step="Βήμα", of="από", video="Βίντεο", photo="Φωτογραφία", prev_img="Προηγούμενη",
@@ -615,7 +633,7 @@ T = {
             "συσκευή. Δεν φεύγει τίποτα από τον browser.",
   wipe="Διαγραφή τοπικών δεδομένων",
   bk_kicker="Ραντεβού", bk_title="Ζητήστε μια εκτίμηση",
-  bk_intro="Απαντάμε την ίδια ή την επόμενη εργάσιμη. Η φόρμα δεν στέλνει τίποτα μόνη της — "
+  bk_intro="Απαντάμε την ίδια ή την επόμενη εργάσιμη. Η φόρμα δεν στέλνει τίποτα μόνη της. "
            "ετοιμάζει ένα email που ελέγχετε πριν φύγει.",
   bk_name="Ονοματεπώνυμο", bk_name_err="Συμπληρώστε το όνομά σας.",
   bk_phone="Τηλέφωνο", bk_phone_err="Χρειαζόμαστε έναν τρόπο να σας βρούμε.",
@@ -634,7 +652,7 @@ T = {
   terms_url="oroi-chrisis/",
  ),
  "en": dict(
-  search_label="Search — Ctrl or ⌘ and K", search_ph="Condition, treatment, article or command…",
+  search_label="Search, Ctrl or ⌘ and K", search_ph="Condition, treatment, article or command…",
   results="Results", nav="navigate", open="open", toggle="toggle",
   guide="Symptom guide", close="Close", back="Back", next="Continue",
   step="Step", of="of", video="Video", photo="Photo", prev_img="Previous",
@@ -646,7 +664,7 @@ T = {
             "Nothing leaves the browser.",
   wipe="Delete local data",
   bk_kicker="Appointment", bk_title="Request a consultation",
-  bk_intro="We reply the same or next working day. The form sends nothing by itself — it "
+  bk_intro="We reply the same or next working day. The form sends nothing by itself. It "
            "prepares an email you check before it goes.",
   bk_name="Full name", bk_name_err="Please tell us your name.",
   bk_phone="Phone", bk_phone_err="We need a way to reach you.",
@@ -694,7 +712,7 @@ def overlays(depth, lang="el"):
   <div class="sc" role="dialog" aria-modal="true" aria-labelledby="sc-title">
     <header class="sc__top">
       <p class="eyebrow">{t['guide']}</p>
-      <h2 id="sc-title" class="sc__q">—</h2>
+      <h2 id="sc-title" class="sc__q"></h2>
       <div class="sc__bar"><i></i></div>
       <button class="ov__x" type="button" data-close aria-label="{t['close']}">{I['close']}</button>
     </header>
@@ -769,7 +787,7 @@ def overlays(depth, lang="el"):
         <div><label for="bk-date">{t['bk_date']}</label>
           <input id="bk-date" name="date" type="date"><p class="err" data-sunday>{t['bk_sunday']}</p></div>
         <div><label for="bk-time">{t['bk_time']}</label>
-          <select id="bk-time" name="time"><option value="">—</option></select></div>
+          <select id="bk-time" name="time"><option value="">Επιλέξτε ώρα</option></select></div>
       </div>
       <div class="fld"><label for="bk-note">{t['bk_note']}</label>
         <textarea id="bk-note" name="note" rows="3" placeholder="{t['bk_note_ph']}"></textarea></div>

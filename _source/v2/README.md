@@ -1,8 +1,8 @@
-# LVRI Athens — version 2
+# LVRI Athens · version 2
 
 Δεύτερη έκδοση του ιστότοπου, χτισμένη πάνω στη **δομή σειρών τύπου Netflix** που έχει το
-[drmegapanos.gr](https://drmegapanos.gr) — hero billboard, οριζόντιες σειρές με κάρτες,
-before/after, φόρμα επικοινωνίας — αλλά με futuristic εμφάνιση και πολύ περισσότερα
+[drmegapanos.gr](https://drmegapanos.gr): hero billboard, οριζόντιες σειρές με κάρτες,
+before/after, φόρμα επικοινωνίας, αλλά με futuristic εμφάνιση και πολύ περισσότερα
 διαδραστικά στοιχεία.
 
 Στατικό HTML/CSS/JS. **Καμία εξάρτηση**: ούτε React, ούτε Tailwind, ούτε build tool
@@ -24,7 +24,7 @@ version-2/
 ## Χτίσιμο & προεπισκόπηση
 
 ```bash
-python3 version-2/build.py                       # ~2 δευτερόλεπτα, 46 σελίδες
+python3 version-2/build.py                       # ~2 δευτερόλεπτα, 47 σελίδες
 cd version-2/site && python3 -m http.server 8899
 ```
 
@@ -39,17 +39,18 @@ cd version-2/site && python3 -m http.server 8899
 | Θεραπείες και ο πίνακας σύγκρισης | `lvri-new/content/data.py` → `TREATMENTS` |
 | Ερωτήσεις του σαρωτή συμπτωμάτων | `lvri-new/content/data.py` → `GUIDE_STEPS` |
 | Προγράμματα Kegel | `lvri-new/content/data.py` → `KEGEL` |
-| Άρθρα, βίντεο, αγγλικές σελίδες | `lvri-new/content/data.py` |
+| Άρθρα και αγγλικές σελίδες | `lvri-new/content/data.py` |
+| Βίντεο YouTube, χωρισμένα σε ενότητες | `lvri-new/content/data.py` → `VIDEO_GROUPS` |
 | Το κυρίως κείμενο κάθε σελίδας | `lvri-new/content/legacy.json` (πεδίο `html`) |
 | Χρώματα, γραμματοσειρές, αποστάσεις | `version-2/src/assets/css/v2.css` → `:root` |
 | Φωτογραφία ανά θεραπεία/πάθηση | `lvri-new/content/data.py` → πεδίο `image` |
 
-Αλλάζετε μία φορά, χτίζετε και τα δύο site. Κανένα νούμερο δεν είναι επινοημένο —
+Αλλάζετε μία φορά, χτίζετε και τα δύο site. Κανένα νούμερο δεν είναι επινοημένο:
 όλα προέρχονται από τα δημοσιευμένα κείμενα του ιατρείου.
 
 ## Το theme
 
-Αντιγράφει τη σχεδιαστική γλώσσα του [drmegapanos.gr](https://drmegapanos.gr) — τα μέτρα
+Αντιγράφει τη σχεδιαστική γλώσσα του [drmegapanos.gr](https://drmegapanos.gr): τα μέτρα
 βγήκαν από το ίδιο του το CSS bundle, δεν είναι εκτίμηση:
 
 | | drmegapanos.gr | εδώ |
@@ -68,7 +69,7 @@ cd version-2/site && python3 -m http.server 8899
 | Τίτλοι σειρών | 1.875rem / 400 / tracking .05em / ΚΕΦΑΛΑΙΑ | ίδιοι |
 
 **Γραμματοσειρές.** Οι δικές τους (Cera GR, Gotham Greek, Open Sans Condensed) είναι με
-άδεια. Οι πλησιέστερες με πλήρη ελληνική κάλυψη στο Google Fonts: **Inter** 400–900 για
+άδεια. Οι πλησιέστερες με πλήρη ελληνική κάλυψη στο Google Fonts: **Inter** 400 έως 900 για
 τίτλους και κείμενο, **Roboto Condensed** 400/700 για τους condensed υπότιτλους και τα
 labels. Και οι δύο φορτώνονται non-blocking.
 
@@ -82,7 +83,7 @@ labels. Και οι δύο φορτώνονται non-blocking.
 - **Gallery** → οι πραγματικές φωτογραφίες περιστατικών.
 - **Θεραπείες / παθήσεις / άρθρα** → **title posters**: μαύρο poster με κόκκινο kicker,
   τον τίτλο σε condensed κεφαλαία και μια κόκκινη γραμμή. Δεν είναι «AI art», είναι
-  τυπογραφική αφίσα — και είναι **προσωρινό**.
+  τυπογραφική αφίσα, και είναι **προσωρινό**.
 
 **Όταν έρθουν φωτογραφίες**, προσθέτετε ένα πεδίο `image` στην εγγραφή μέσα στο
 `lvri-new/content/data.py` και η φωτογραφία παίρνει αυτόματα τη θέση της αφίσας:
@@ -92,7 +93,7 @@ dict(slug="anazoogonisi-kolpou", image="anazoogonisi.jpg", ...)
 ```
 
 Το αρχείο μπαίνει στο `version-2/site/assets/img/` (προαιρετικά και `.webp` με το ίδιο
-όνομα — χρησιμοποιείται αυτόματα). Καμία άλλη αλλαγή.
+όνομα, χρησιμοποιείται αυτόματα). Καμία άλλη αλλαγή.
 
 ## Διαδραστικά στοιχεία
 
@@ -105,7 +106,8 @@ dict(slug="anazoogonisi-kolpou", image="anazoogonisi.jpg", ...)
 | **Προπονητής Kegel** | `/askiseis-kegel/`, αρχική | 3 προγράμματα, δακτύλιος με φάσεις σφίξιμο/κράτημα/χαλάρωση, μετρητής συνεδριών. |
 | **Σύγκριση θεραπειών** | `/therapeies/#compare` | Πίνακας 5×7 με φίλτρα επεμβατικότητας. |
 | **Ρυθμίσεις εμφάνισης** | παντού | Κίνηση on/off, υψηλή αντίθεση, διαγραφή τοπικών δεδομένων. |
-| **Video player** | αρχική, `/gallery/` | YouTube facade — τίποτα δεν φορτώνει από τρίτους μέχρι το πάτημα. `youtube-nocookie`. |
+| **Video player** | αρχική, `/vinteo/`, `/gallery/` | YouTube facade: τίποτα δεν φορτώνει από τρίτους μέχρι το πάτημα. `youtube-nocookie`. |
+| **Βιβλιοθήκη βίντεο** | `/vinteo/` | 74 βίντεο του καναλιού σε δύο καρτέλες, «Επεμβάσεις» και «Συνεντεύξεις και ενημέρωση», με ζωντανή αναζήτηση. Χωρίς JavaScript εμφανίζονται και οι δύο ενότητες. |
 | **Lightbox** | `/gallery/` | Πλοήγηση με βελάκια, μετρητής, κλείδωμα μέχρι συγκατάθεση. |
 | **Ζωντανή αναζήτηση άρθρων** | `/arthra/` | Πεδίο + chips κατηγορίας, χωρίς αίτημα στον server. |
 | **Πίνακας περιεχομένων** | κάθε μακρύ κείμενο | Αυτόματος, με scroll-spy. |
@@ -114,7 +116,7 @@ dict(slug="anazoogonisi-kolpou", image="anazoogonisi.jpg", ...)
 ### Γλώσσα
 
 Το κέλυφος (μενού, φόρμα ραντεβού, cookies, ρυθμίσεις, μηνύματα) ακολουθεί τη γλώσσα της
-σελίδας — ελληνικά στο `/`, αγγλικά στο `/en/`. Ο οδηγός συμπτωμάτων και η αναζήτηση
+σελίδας: ελληνικά στο `/`, αγγλικά στο `/en/`. Ο οδηγός συμπτωμάτων και η αναζήτηση
 δουλεύουν πάνω στο ελληνικό περιεχόμενο και παραμένουν στα ελληνικά· στο αγγλικό μενού
 δεν εμφανίζονται.
 
@@ -124,7 +126,7 @@ dict(slug="anazoogonisi-kolpou", image="anazoogonisi.jpg", ...)
 συγκαταθέσεις (cookies, κλινικές φωτογραφίες). Όλα σε `localStorage`. **Τίποτα δεν
 αποστέλλεται.** Ο επισκέπτης τα σβήνει από το εικονίδιο ρυθμίσεων.
 
-Η φόρμα ραντεβού **συνθέτει email** — δεν υπάρχει server. Αν θέλετε φόρμα που στέλνεται
+Η φόρμα ραντεβού **συνθέτει email**: δεν υπάρχει server. Αν θέλετε φόρμα που στέλνεται
 απευθείας, χρειάζεται endpoint (π.χ. Formspree) στο `booking()` του `src/assets/js/v2.js`.
 
 
@@ -138,13 +140,14 @@ dict(slug="anazoogonisi-kolpou", image="anazoogonisi.jpg", ...)
 - `sitemap.xml`, `robots.txt`, canonical σε κάθε σελίδα, `vercel.json`.
 - Structured data: `MedicalClinic` + `LocalBusiness` με `geo`, `areaServed` (12 περιοχές),
   `openingHoursSpecification` και `availableService`· `Physician`, `MedicalCondition`,
-  `MedicalProcedure`, `Article`, `FAQPage`, `BreadcrumbList`, `ContactPage`.
+  `MedicalProcedure`, `Article`, `FAQPage`, `BreadcrumbList`, `ContactPage`,
+  `ItemList` με `VideoObject` για κάθε βίντεο στο `/vinteo/`.
 - Geo meta (`geo.region` GR-A1, `geo.position`, `ICBM`), Open Graph, Twitter cards.
 - NAP πανομοιότυπο σε footer, `/epikoinonia/` και schema. ΤΚ **162 31**.
 
 ## Ποιότητα
 
-- 46 σελίδες, **0 σπασμένοι εσωτερικοί σύνδεσμοι**, **0 λάθη στο HTML**, **0 σφάλματα JS**,
+- 47 σελίδες, **0 σπασμένοι εσωτερικοί σύνδεσμοι**, **0 λάθη στο HTML**, **0 σφάλματα JS**,
   **0 άκυρα JSON-LD**, **0 σελίδες χωρίς title/description**.
 - Homepage: 15,5 KB gzipped HTML · CSS 10 KB · JS 12 KB (το πρωτότυπο: ~1,6 MB JS). Καμία εξωτερική εξάρτηση εκτός
   από τη γραμματοσειρά και τα thumbnails του YouTube.

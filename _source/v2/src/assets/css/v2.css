@@ -1,5 +1,5 @@
 /* =============================================================
-   LVRI ATHENS — version 2
+   LVRI ATHENS · version 2
    Netflix-style theme, matching the structure and metrics of
    drmegapanos.gr: black ground, one red accent, full-bleed hero,
    horizontal rows of 4:3 cards that lift on hover.
@@ -79,6 +79,7 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
   font-size:.875rem;font-weight:500;color:var(--dim);cursor:pointer;transition:all .25s var(--ease)}
 .chip:hover{color:#fff;border-color:var(--line-2)}
 .chip.is-on{color:#fff;background:var(--red);border-color:var(--red)}
+.chip__n{font-weight:600;opacity:.7;font-variant-numeric:tabular-nums}
 
 /* invasiveness scale */
 .lvl{display:inline-flex;align-items:center;gap:.45em;font-family:var(--cond);font-size:.75rem;
@@ -118,7 +119,7 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
 .tb__burger{display:none}
 .tb__scan{position:absolute;left:0;bottom:0;height:2px;width:100%;background:var(--red);
   transform-origin:left;transform:scaleX(var(--scan,0))}
-@media (max-width:1180px){.tb__nav,.tb__call{display:none}.tb__burger{display:grid}}
+@media (max-width:1300px){.tb__nav,.tb__call{display:none}.tb__burger{display:grid}}
 @media (max-width:540px){.tb__cta{display:none}}
 
 .drawer{position:fixed;inset:0;z-index:95;background:#000c}
@@ -185,7 +186,7 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
 .nf-row__btn:hover{background:var(--red);border-color:var(--red)}
 .nf-row__btn[disabled]{opacity:.25;pointer-events:none}
 /* On hover the artwork slides up behind the top edge and the panel underneath it is
-   revealed inside the same card box — the interaction drmegapanos.gr uses. */
+   revealed inside the same card box, the interaction drmegapanos.gr uses. */
 .nf-row__viewport{position:relative;z-index:1;overflow-x:auto;overflow-y:hidden;
   scroll-behavior:smooth;scroll-snap-type:x proximity;scrollbar-width:none;-ms-overflow-style:none;
   padding-bottom:6px}
@@ -204,7 +205,7 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
   transition:transform .4s var(--ease);will-change:transform}
 .nf-card__img > img,.nf-card__img > picture{position:absolute;inset:0;width:100%;height:100%}
 .nf-card__img img{width:100%;height:100%;object-fit:cover}
-/* title poster — the placeholder used until real photography exists */
+/* title poster: the placeholder used until real photography exists */
 .nf-poster{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;
   padding:1.15rem 1.15rem 1.1rem;
   background:linear-gradient(155deg,#262626 0%,#141414 46%,#0a0a0a 100%)}
@@ -228,6 +229,30 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
 .nf-card__stat{position:absolute;z-index:3;top:.9rem;right:1rem;font-family:var(--display);
   font-weight:900;font-size:1.5rem;letter-spacing:-.03em;color:#fff;text-shadow:0 2px 12px #000}
 .nf-card__badge{display:block;position:absolute;z-index:3;top:.9rem;left:1rem}
+/* video cards: 16:9 frame, YouTube-style duration pill bottom right */
+.nf-card--video .nf-card__img{aspect-ratio:16/9}
+.nf-card__dur{position:absolute;z-index:3;right:.5rem;bottom:.5rem;padding:.15em .45em;
+  border-radius:3px;background:#000000cc;font-family:var(--text);font-size:.72rem;
+  font-weight:600;line-height:1.4;color:#fff;font-variant-numeric:tabular-nums}
+.nf-card--video .nf-card__overlay{padding:.85rem 1rem}
+.nf-card--video .nf-card__title{font-size:.92rem}
+
+/* the two video tabs; without JavaScript both panels simply stay open */
+.vt__panel{margin-top:2.2rem}
+.vt__panel h2{margin-bottom:.35em}
+.vt__lead{color:var(--dim);max-width:70ch;margin:0 0 1.6rem}
+.vt__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.1rem}
+.vt__empty{color:var(--dim);margin-top:2rem}
+/* the row cards lift to uncover a panel; in a grid that would overlap the row
+   above, so grid cards keep their frame and just scale a touch */
+@media (hover:hover) and (min-width:821px){
+  .vt__grid .nf-slide:hover .nf-card__img,.vt__grid .nf-slide:focus-within .nf-card__img{
+    transform:scale(1.03)}
+  .vt__grid .nf-slide:hover .nf-card__panel,.vt__grid .nf-slide:focus-within .nf-card__panel{
+    opacity:0;pointer-events:none}
+  .vt__grid .nf-slide:hover .nf-card__overlay,.vt__grid .nf-slide:focus-within .nf-card__overlay{
+    opacity:1}
+}
 .nf-card__panel{position:absolute;left:0;right:0;bottom:0;z-index:1;padding:1rem 1.1rem 0;
   display:flex;align-items:center;justify-content:space-between;gap:.75rem;
   opacity:0;pointer-events:none;transition:opacity .3s ease .05s}
@@ -260,7 +285,7 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
 @media (hover:none){.nf-save{opacity:1}}
 .nf-card__stat + .nf-save,.nf-slide:has(.nf-card__stat) .nf-save{top:auto;bottom:.75rem}
 
-/* “top five” row — portrait cards behind giant outlined numerals */
+/* “top five” row: portrait cards behind giant outlined numerals */
 .nf-row--top .nf-row__track{gap:1.5rem;counter-reset:nfc}
 .nf-row--top .nf-slide{flex:0 0 calc(33% - 1.5rem);counter-increment:nfc;padding-left:6.8rem}
 .nf-row--top .nf-slide::before{content:counter(nfc);position:absolute;left:-.4rem;top:50%;

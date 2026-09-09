@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Content layer for version 2.
 
-Reads the same source of truth as version 1 — `lvri-new/content/data.py` and
-`lvri-new/content/legacy.json` — so there is one place to edit copy and both
+Reads the same source of truth as version 1, `lvri-new/content/data.py` and
+`lvri-new/content/legacy.json`, so there is one place to edit copy and both
 sites stay in sync. Nothing here is invented: every figure comes from the
 clinic's own published pages.
 """
@@ -29,7 +29,8 @@ TOOLS = _find(os.path.join(ROOT, "lvri-new", "tools"),
 
 sys.path.insert(0, CONTENT)
 from data import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS,   # noqa: E402
-                  RED_FLAGS, KEGEL, VIDEOS, EN_PAGES, MONTHS,
+                  RED_FLAGS, KEGEL, VIDEOS, VIDEO_GROUPS, VIDEO_LIBRARY,
+                  HOME_VIDEOS, YOUTUBE_CHANNEL, EN_PAGES, MONTHS,
                   ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES)
 
 LEGACY = json.load(open(os.path.join(CONTENT, "legacy.json"), encoding="utf-8"))
@@ -43,7 +44,7 @@ URLMAP = {
     "home": "", "h-kliniki": "i-kliniki/", "dr-k-mirillas": "dr-mirillas/",
     "david-l-matlock": "dr-matlock/", "epikinonia": "epikoinonia/",
     "oroi-chrisis-politiki-aporritou": "oroi-chrisis/", "iatrika-arthra": "arthra/",
-    "photo-gallery": "gallery/", "video-gallery": "gallery/",
+    "photo-gallery": "gallery/", "video-gallery": "vinteo/",
 }
 for _c in CONDITIONS:
     URLMAP[_c["legacy"]] = f"pathiseis/{_c['slug']}/"

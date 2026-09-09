@@ -294,7 +294,7 @@ def footer(depth, lang="el"):
       </div>
     </div>
     <div class="footer__bottom">
-      <span>© 2008–2026 {SITE['legal']} · {SITE['locality']}, {SITE['region']}</span>
+      <span>© 2008 έως 2026 {SITE['legal']} · {SITE['locality']}, {SITE['region']}</span>
       <span style="display:flex;gap:1.25rem;flex-wrap:wrap;align-items:center">
         <a href="{b}oroi-chrisis/">{t['terms']}</a>
         <a href="{(b + 'en/') if lang == 'el' else b}">{t['other_lang_full']}</a>
@@ -446,7 +446,7 @@ ANATOMY_SVG = """<svg class="anatomy__svg" viewBox="0 0 680 560" role="img"
 
   <!-- Rectum: posterior canal, drawn as a tube. -->
   <g class="hot" id="g-rectum" data-organ="rectum" tabindex="0" role="button"
-     aria-label="Ορθό — ορθοκήλη και εντεροκήλη">
+     aria-label="Ορθό, ορθοκήλη και εντεροκήλη">
     <g class="organ">
       <path class="hot__shape" d="M414 200c6 62-2 112-30 152-14 20-30 38-48 54"
             fill="none" stroke="url(#tissue)" stroke-width="26" stroke-linecap="round"/>
@@ -460,7 +460,7 @@ ANATOMY_SVG = """<svg class="anatomy__svg" viewBox="0 0 680 560" role="img"
 
   <!-- Uterus: anteverted body plus cervix. -->
   <g class="hot" id="g-uterus" data-organ="uterus" tabindex="0" role="button"
-     aria-label="Μήτρα — πρόπτωση μήτρας και κόλπου">
+     aria-label="Μήτρα, πρόπτωση μήτρας και κόλπου">
     <g class="organ">
       <path class="hot__shape" d="M342 258l12 34" fill="none"
             stroke="url(#tissue)" stroke-width="24" stroke-linecap="round"/>
@@ -474,7 +474,7 @@ ANATOMY_SVG = """<svg class="anatomy__svg" viewBox="0 0 680 560" role="img"
 
   <!-- Bladder: anterior to the uterus, with the urethra below it. -->
   <g class="hot" id="g-bladder" data-organ="bladder" tabindex="0" role="button"
-     aria-label="Ουροδόχος κύστη — ακράτεια ούρων και κυστεοκήλη">
+     aria-label="Ουροδόχος κύστη, ακράτεια ούρων και κυστεοκήλη">
     <g class="organ">
       <ellipse class="hot__shape" cx="254" cy="302" rx="48" ry="40"
                fill="url(#tissue)" stroke="#a5accf" stroke-width="1.4"/>
@@ -488,7 +488,7 @@ ANATOMY_SVG = """<svg class="anatomy__svg" viewBox="0 0 680 560" role="img"
 
   <!-- Vagina: the canal between bladder and rectum. -->
   <g class="hot" id="g-vagina" data-organ="vagina" tabindex="0" role="button"
-     aria-label="Κόλπος — ξηρότητα και χαλάρωση κόλπου">
+     aria-label="Κόλπος, ξηρότητα και χαλάρωση κόλπου">
     <g class="organ">
       <path class="hot__shape" d="M352 296c-14 20-32 38-52 54-16 14-30 28-42 42"
             fill="none" stroke="url(#tissue)" stroke-width="21" stroke-linecap="round"/>

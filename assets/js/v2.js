@@ -1,5 +1,5 @@
 /* =============================================================
-   LVRI ATHENS — version 2 runtime
+   LVRI ATHENS · version 2 runtime
    Vanilla JS, no dependencies. Everything runs on the device.
    ============================================================= */
 (function () {
@@ -606,7 +606,7 @@ D.addEventListener("click", function (e) {
   if (dateI) dateI.min = today.toISOString().slice(0, 10);
   function slots() {
     if (!dateI || !timeI) return;
-    var v = dateI.value; timeI.innerHTML = '<option value="">—</option>';
+    var v = dateI.value; timeI.innerHTML = '<option value="">Επιλέξτε ώρα</option>';
     if (!v) return;
     var d = new Date(v + "T00:00:00"), day = d.getDay();
     if (sunday) sunday.classList.toggle("is-on", day === 0);
@@ -644,7 +644,7 @@ D.addEventListener("click", function (e) {
       "", f.note.value.trim()
     ].filter(Boolean).join("\n");
     var href = "mailto:" + "info@lvriathens.com" +
-      "?subject=" + encodeURIComponent("Αίτημα ραντεβού — " + f.name.value.trim()) +
+      "?subject=" + encodeURIComponent("Αίτημα ραντεβού: " + f.name.value.trim()) +
       "&body=" + encodeURIComponent(lines);
     location.href = href;
     toast(TXT.mailOpening);

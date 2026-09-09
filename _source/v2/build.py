@@ -3,7 +3,7 @@
 
     python3 version-2/build.py
 
-Content comes from lvri-new/content/ (data.py + legacy.json) — the same source
+Content comes from lvri-new/content/ (data.py + legacy.json), the same source
 of truth as version 1, so copy is edited in one place only.
 """
 import os, re, sys, json, html, shutil, datetime
@@ -14,7 +14,8 @@ sys.path.insert(0, os.path.join(HERE, "lib"))
 import content as C
 import ui as U
 from content import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS, RED_FLAGS,
-                     KEGEL, VIDEOS, EN_PAGES, CONDS, TREATS, LEGACY, TODAY, rel,
+                     KEGEL, VIDEO_GROUPS, VIDEO_LIBRARY, HOME_VIDEOS,
+                     YOUTUBE_CHANNEL, EN_PAGES, CONDS, TREATS, LEGACY, TODAY, rel,
                      ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES)
 
 OUT = os.path.abspath(os.environ.get("LVRI2_OUT") or os.path.join(HERE, "site"))
@@ -151,7 +152,8 @@ def build_home():
     t_cards = [U.treatment_card(t, d, n=i + 1) for i, t in enumerate(TREATMENTS)]
     c_cards = [U.condition_card(c, d) for c in CONDITIONS]
     a_cards = [U.article_card(s, tag, d) for s, tag in ARTICLES[:12]]
-    v_cards = [U.video_card(v, d, i + 1) for i, v in enumerate(VIDEOS[:14])]
+    by_id = {v['id']: v for v in VIDEO_LIBRARY}
+    v_cards = [U.video_card(by_id[i], d) for i in HOME_VIDEOS if i in by_id]
 
     body = U.billboard(d) + f"""
 <main id="main">
@@ -161,8 +163,8 @@ def build_home():
   {U.row(rid="r-cond", title="Παθήσεις", cards=c_cards,
          all_href="pathiseis/", all_label="Όλες")}
 
-  {U.row(rid="r-vid", title="LVRI Originals", cards=v_cards,
-         all_href="gallery/#video", all_label="Όλα τα βίντεο", kind="nf-row--wide")}
+  {U.row(rid="r-vid", title="Βίντεο", eyebrow="του ιατρείου", cards=v_cards,
+         all_href="vinteo/", all_label="Όλα τα βίντεο", kind="nf-row--wide")}
 
   <div class="rv">{U.scanner_section(d)}</div>
 
@@ -195,10 +197,10 @@ def build_home():
   {U.cta_band(d)}
 </main>"""
     desc = C.meta_desc("home", "Κέντρο κοσμητικής γυναικολογίας και επανορθωτικής χειρουργικής πυέλου στην Αθήνα.")
-    write("index.html", shell(path="", title="LVRI Athens — Laser πλαστική κόλπου & πυελικό έδαφος, Αθήνα",
+    write("index.html", shell(path="", title="Laser πλαστική κόλπου & πυελικό έδαφος, Αθήνα | LVRI Athens",
                               desc=desc, depth=d, body=body, active="", body_class="is-home"))
     register("", prio="1.0", freq="weekly")
-    index("", title="Αρχική", desc="LVRI Athens — θεραπείες, παθήσεις και εργαλεία", kind="page",
+    index("", title="Αρχική", desc="LVRI Athens: θεραπείες, παθήσεις και εργαλεία", kind="page",
           kw="αρχικη home lvri athens")
 
 
@@ -236,7 +238,7 @@ def build_treatment(t):
 <div class="panel"><h3>Με μια ματιά</h3><ul class="facts">{facts}</ul></div>
 <div class="panel"><h3>Αντιμετωπίζει</h3><ul class="card__chips" style="margin:0">{treats}</ul></div>
 <div class="panel"><h3>Ταιριάζει σε εσάς;</h3>
-  <p>Τέσσερα βήματα στη συσκευή σας — καμία αποστολή δεδομένων.</p>
+  <p>Τέσσερα βήματα στη συσκευή σας, καμία αποστολή δεδομένων.</p>
   <button class="btn btn--cta btn--sm" type="button" data-open="scanner">Σαρωτής συμπτωμάτων</button></div>
 <div class="panel"><h3>Ζητήστε εκτίμηση</h3><p>Απαντάμε την ίδια ή την επόμενη εργάσιμη.</p>
   <button class="btn btn--cta btn--sm" type="button" data-open="book" data-topic="{html.escape(t['title'])}">Ραντεβού</button></div>'''
@@ -307,7 +309,7 @@ def build_treatments_hub():
   {U.cta_band(d)}
 </main>'''
     write("therapeies/index.html", shell(path="therapeies/", title="Θεραπείες | LVRI Athens",
-          desc="Οι πέντε θεραπείες του LVRI Athens για ακράτεια, πρόπτωση, ξηρότητα και χαλάρωση κόλπου — δίπλα δίπλα, με χώρο, αναισθησία, συνεδρίες και ανάρρωση.",
+          desc="Οι πέντε θεραπείες του LVRI Athens για ακράτεια, πρόπτωση, ξηρότητα και χαλάρωση κόλπου: δίπλα δίπλα, με χώρο, αναισθησία, συνεδρίες και ανάρρωση.",
           depth=d, body=body, active="therapeies",
           jsonld=[crumb_ld]))
     register("therapeies/", prio="0.9", freq="weekly")
@@ -385,7 +387,7 @@ def build_conditions_hub():
     <p class="eyebrow">Πέντε καταστάσεις</p>
     <h1>Παθήσεις</h1>
     <p class="lede">Πέντε καταστάσεις που φέρνουν τις περισσότερες γυναίκες στο ιατρείο.
-      Διαβάστε τι είναι — ή αφήστε τον σαρωτή να δείξει τι ταιριάζει με όσα νιώθετε.</p>
+      Διαβάστε τι είναι, ή αφήστε τον σαρωτή να δείξει τι ταιριάζει με όσα νιώθετε.</p>
     <div class="hero__acts">
       <button class="btn btn--cta" type="button" data-open="scanner">Σαρωτής συμπτωμάτων</button>
       <a class="btn btn--glass" href="#anatomia">Χάρτης πυέλου</a>
@@ -497,7 +499,7 @@ def build_articles_hub():
         f'<button class="chip" type="button" data-art="{html.escape(t)}">{html.escape(t)}</button>' for t in tags)
     items = "".join(U.photo_tile(
         ARTICLE_IMAGES.get(s), C.article_title(s), d,
-        kicker=f'{html.escape(t)} · {C.article_pretty_date(s) or "—"}',
+        kicker=f'{html.escape(t)} · {C.article_pretty_date(s) or "Άρθρο"}',
         heading=f'<h3><a href="{s}/">{html.escape(C.article_title(s))}</a></h3>',
         body=f'<p>{html.escape(C.plain(s, 150))}…</p>',
         extra_attrs=f' data-tag="{html.escape(t)}" data-title="{html.escape(C.article_title(s), quote=True)}"',
@@ -545,7 +547,7 @@ def build_guide_page():
     d = 1
     crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Σαρωτής συμπτωμάτων", None)], d)
     steps = "".join(f'''<article class="tile"><span class="tile__n">Βήμα {i+1}</span>
-      <h3>{html.escape(s['q'])}</h3><p>{html.escape(s['help'] or '—')}</p></article>'''
+      <h3>{html.escape(s['q'])}</h3><p>{html.escape(s['help'] or '')}</p></article>'''
                     for i, s in enumerate(GUIDE_STEPS))
     flags = "".join(f"<li>{html.escape(f)}</li>" for f in RED_FLAGS)
     body = f'''
@@ -593,7 +595,7 @@ def build_kegel_page():
     <p class="eyebrow">Προπόνηση</p>
     <h1>Ασκήσεις Kegel</h1>
     <p class="lede">Οι ασκήσεις Kegel αναφέρονται στα κείμενα του ιατρείου ως πρώτη, μη επεμβατική
-      επιλογή για την ακράτεια ούρων. Αυτός ο μετρητής κρατά τον ρυθμό — τίποτα άλλο.</p>
+      επιλογή για την ακράτεια ούρων. Αυτός ο μετρητής κρατά μόνο τον ρυθμό.</p>
   </div>
 </section>
 <main id="main">
@@ -602,7 +604,7 @@ def build_kegel_page():
     <div class="sec__head"><h2>Πώς γίνονται σωστά</h2></div>
     <div class="prose">
       <ul>
-        <li>Σφίξτε τους μυς που θα χρησιμοποιούσατε για να συγκρατήσετε τα ούρα — όχι την κοιλιά,
+        <li>Σφίξτε τους μυς που θα χρησιμοποιούσατε για να συγκρατήσετε τα ούρα, όχι την κοιλιά,
           τους γλουτούς ή τους μηρούς.</li>
         <li>Αναπνέετε κανονικά σε όλη τη διάρκεια. Αν κρατάτε την αναπνοή, σφίγγετε λάθος μυς.</li>
         <li>Η χαλάρωση μετράει όσο και το σφίξιμο. Αφήστε τον μυ να ξεκουραστεί πλήρως.</li>
@@ -610,14 +612,14 @@ def build_kegel_page():
         <li>Αν νιώσετε πόνο ή δεν βρίσκετε τους σωστούς μυς, ζητήστε καθοδήγηση.</li>
       </ul>
       <p>Οι ασκήσεις βοηθούν σε ήπιες μορφές. Σε εγκατεστημένη πρόπτωση ή σε ακράτεια που
-        επηρεάζει την καθημερινότητα, χρειάζεται εκτίμηση —
+        επηρεάζει την καθημερινότητα, χρειάζεται εκτίμηση:
         <a href="../pathiseis/akrateia-ouron/">διαβάστε για την ακράτεια ούρων</a>.</p>
     </div>
   </div></section>
   {U.cta_band(d)}
 </main>'''
-    write("askiseis-kegel/index.html", shell(path="askiseis-kegel/", title="Ασκήσεις Kegel — προπονητής | LVRI Athens",
-          desc="Τρία προγράμματα Kegel με οπτικό ρυθμιστή σφίξιμο–κράτημα–χαλάρωση και μετρητή συνεδριών. Οδηγίες για σωστή εκτέλεση.",
+    write("askiseis-kegel/index.html", shell(path="askiseis-kegel/", title="Ασκήσεις Kegel: προπονητής | LVRI Athens",
+          desc="Τρία προγράμματα Kegel με οπτικό ρυθμιστή για σφίξιμο, κράτημα και χαλάρωση και μετρητή συνεδριών. Οδηγίες για σωστή εκτέλεση.",
           depth=d, body=body, active="", jsonld=[crumb_ld]))
     register("askiseis-kegel/", prio="0.7")
     index("askiseis-kegel/", title="Ασκήσεις Kegel", desc="Προπονητής με 3 προγράμματα", kind="page",
@@ -632,7 +634,7 @@ def build_mylist_page():
   <div class="wrap">{crumb}
     <p class="eyebrow">Στη συσκευή σας</p>
     <h1>Η λίστα μου</h1>
-    <p class="lede">Ό,τι κρατήσατε με το <b>+</b>. Μένει μόνο σε αυτόν τον browser —
+    <p class="lede">Ό,τι κρατήσατε με το <b>+</b>. Μένει μόνο σε αυτόν τον browser:
       δεν συνδέεται με λογαριασμό και δεν φεύγει από τη συσκευή σας.</p>
   </div>
 </section>
@@ -652,26 +654,28 @@ def build_gallery():
     d = 1
     photos = [f"result-{i:02d}.jpg" for i in range(1, 18)]
     photo_items = "".join(f'''<button class="gal__i" type="button" data-cat="photo"
-      data-full="{rel(d)}assets/img/{p}" data-alt="Αποτέλεσμα επέμβασης {i} — πριν και μετά"
-      data-cap="Περιστατικό {i}">{U.pic(p, f"Αποτέλεσμα επέμβασης {i} — πριν και μετά", 484, 176, d)}
+      data-full="{rel(d)}assets/img/{p}" data-alt="Αποτέλεσμα επέμβασης {i}, πριν και μετά"
+      data-cap="Περιστατικό {i}">{U.pic(p, f"Αποτέλεσμα επέμβασης {i}, πριν και μετά", 484, 176, d)}
       <span class="gal__lock">{U.I['lock']}<span>Κλινική φωτογραφία</span></span></button>'''
                          for i, p in enumerate(photos, 1))
-    v_cards = [U.video_card(v, d, i + 1) for i, v in enumerate(VIDEOS)]
+    by_id = {v["id"]: v for v in VIDEO_LIBRARY}
+    g_cards = [U.video_card(by_id[i], d) for i in HOME_VIDEOS if i in by_id]
     crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Gallery", None)], d)
     body = f'''
 {U.hero_photo(HUB_IMAGES.get('gallery/'), 'Gallery', d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Αρχείο</p>
     <h1>Gallery</h1>
-    <p class="lede">{len(photos)} περιστατικά πριν και μετά, και {len(VIDEOS)} βίντεο από τηλεοπτικές
-      εκπομπές και συνέδρια. Τα αποτελέσματα διαφέρουν από περίπτωση σε περίπτωση.</p>
+    <p class="lede">{len(photos)} περιστατικά πριν και μετά. Τα αποτελέσματα διαφέρουν
+      από περίπτωση σε περίπτωση. Τα {len(VIDEO_LIBRARY)} βίντεο του ιατρείου βρίσκονται
+      πλέον στη <a class="linky" href="{rel(d)}vinteo/">σελίδα Βίντεο</a>.</p>
   </div>
 </section>
 <main id="main">
   <section class="sec"><div class="wrap">
     <div class="consent">
       <p><b>Οι φωτογραφίες περιστατικών δείχνουν γυμνό.</b> Είναι ιατρικές εικόνες πριν και μετά
-        την επέμβαση. Εμφανίζονται μόνο αν το επιλέξετε — η επιλογή μένει σε αυτή τη συσκευή.</p>
+        την επέμβαση. Εμφανίζονται μόνο αν το επιλέξετε. Η επιλογή μένει σε αυτή τη συσκευή.</p>
       <button class="btn btn--cta btn--sm" type="button" data-unlock>Εμφάνιση φωτογραφιών</button>
     </div>
     <div class="gal is-locked">{photo_items}</div>
@@ -680,15 +684,121 @@ def build_gallery():
       Δεν αποτελούν υπόσχεση αποτελέσματος: κάθε ανατομία και κάθε επούλωση είναι διαφορετική.</p>
   </div></section>
   <div id="video"></div>
-  {U.row(rid="r-gv", eyebrow="Βίντεο", title=f"{len(VIDEOS)} εμφανίσεις και ομιλίες", cards=v_cards, kind="nf-row--wide")}
+  {U.row(rid="r-gv", eyebrow="του ιατρείου", title="Βίντεο", cards=g_cards,
+         all_href=f"{rel(d)}vinteo/", all_label="Όλα τα βίντεο", kind="nf-row--wide")}
   {U.cta_band(d)}
 </main>'''
-    write("gallery/index.html", shell(path="gallery/", title="Gallery — φωτογραφίες & βίντεο | LVRI Athens",
-          desc="Φωτογραφίες περιστατικών πριν και μετά και βίντεο από τηλεοπτικές εκπομπές και ιατρικά συνέδρια. LVRI Athens, Βύρωνας — Αθήνα.",
+    write("gallery/index.html", shell(path="gallery/", title="Gallery: φωτογραφίες & βίντεο | LVRI Athens",
+          desc="Φωτογραφίες περιστατικών πριν και μετά και βίντεο από τηλεοπτικές εκπομπές και ιατρικά συνέδρια. LVRI Athens, Βύρωνας, Αθήνα.",
           depth=d, body=body, active="gallery", jsonld=[crumb_ld]))
     register("gallery/", prio="0.6")
     index("gallery/", title="Gallery", desc="Φωτογραφίες περιστατικών και βίντεο", kind="page",
           kw="gallery φωτογραφιες βιντεο πριν μετα")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# VIDEO
+# ══════════════════════════════════════════════════════════════════════════════
+def video_ld(v):
+    """VideoObject ανά βίντεο. Όλα τα πεδία βγαίνουν από τα μεταδεδομένα του
+    ίδιου του καναλιού, τίποτα δεν συμπληρώνεται στο περίπου."""
+    what = ("Καταγραφή επέμβασης" if v["group"] == "epemvaseis"
+            else "Ενημερωτικό βίντεο ή συνέντευξη")
+    return {"@type": "VideoObject", "name": v["title"],
+            "description": f"{what} από το κανάλι του Dr. Κωνσταντίνου Μυρίλλα: {v['title']}.",
+            "uploadDate": v["date"],
+            "duration": f"PT{v['secs'] // 60}M{v['secs'] % 60}S",
+            "thumbnailUrl": f"https://i.ytimg.com/vi/{v['id']}/hqdefault.jpg",
+            "embedUrl": f"https://www.youtube.com/embed/{v['id']}",
+            "url": f"https://www.youtube.com/watch?v={v['id']}",
+            "publisher": {"@id": SITE["domain"] + "/#clinic"}}
+
+
+def build_videos():
+    d = 1
+    crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Βίντεο", None)], d)
+    chips = "".join(
+        f'<button class="chip{" is-on" if i == 0 else ""}" type="button" data-vt="{g["slug"]}"'
+        f' aria-controls="vt-{g["slug"]}" aria-pressed="{"true" if i == 0 else "false"}">'
+        f'{html.escape(g["title"])} <span class="chip__n">{len(g["items"])}</span></button>'
+        for i, g in enumerate(VIDEO_GROUPS))
+
+    panels = ""
+    for i, g in enumerate(VIDEO_GROUPS):
+        cards = "".join(U.video_card(v, d) for v in g["items"])
+        warn = (f'<div class="consent" style="margin-bottom:1.6rem"><p><b>{html.escape(g["warn"])}</b> '
+                f'Το υλικό προορίζεται για ενημέρωση ασθενών και συναδέλφων και μπορεί να '
+                f'φανεί δυσάρεστο. Η αναπαραγωγή ξεκινά μόνο αν πατήσετε μια κάρτα.</p></div>'
+                if g["warn"] else "")
+        panels += f'''
+  <section class="vt__panel" id="vt-{g["slug"]}" data-vt-panel="{g["slug"]}">
+    <h2>{html.escape(g["title"])}</h2>
+    <p class="vt__lead">{html.escape(g["lead"])}</p>
+    {warn}
+    <div class="vt__grid">{cards}</div>
+  </section>'''
+
+    total = len(VIDEO_LIBRARY)
+    body = f'''
+{U.hero_photo(HUB_IMAGES.get("vinteo/"), "Βίντεο", d)}
+  <div class="wrap">{crumb}
+    <p class="eyebrow">Αρχείο</p>
+    <h1>Βίντεο</h1>
+    <p class="lede">{total} βίντεο από το κανάλι του Dr. Κωνσταντίνου Μυρίλλα:
+      {len(VIDEO_GROUPS[0]["items"])} καταγραφές επεμβάσεων και
+      {len(VIDEO_GROUPS[1]["items"])} συνεντεύξεις, ομιλίες και ενημερωτικά βίντεο.
+      Παίζουν από το YouTube, χωρίς να φορτώνει τίποτα πριν πατήσετε.</p>
+    <div class="fld" style="max-width:420px;margin-top:1.4rem">
+      <label for="vt-q">Αναζήτηση στα βίντεο</label>
+      <input id="vt-q" type="search" placeholder="π.χ. ινομυώματα" autocomplete="off"></div>
+    <div class="chips" style="margin-top:1rem">{chips}</div>
+  </div>
+</section>
+<main id="main"><section class="sec"><div class="wrap">
+  {panels}
+  <p class="vt__empty" id="vt-empty" hidden>Καμία αντιστοιχία.</p>
+  <p style="margin-top:2.4rem;color:var(--dim-2);font-size:.8rem;max-width:64ch">
+    Τα βίντεο φιλοξενούνται στο YouTube και παίζουν μέσα από το youtube-nocookie.com.
+    Δεν υποκαθιστούν την ιατρική εξέταση: κάθε περιστατικό κρίνεται ξεχωριστά.
+    <a class="linky" href="{YOUTUBE_CHANNEL}" rel="noopener" target="_blank"
+       style="text-decoration:underline">Το κανάλι στο YouTube</a>.</p>
+</div></section>{U.cta_band(d)}</main>
+<script>
+(function(){{var q=document.getElementById('vt-q'),
+e=document.getElementById('vt-empty'),
+chips=[].slice.call(document.querySelectorAll('[data-vt]')),
+panels=[].slice.call(document.querySelectorAll('[data-vt-panel]')),tab=chips[0].dataset.vt;
+function n(s){{return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ς/g,'σ');}}
+function run(){{var v=n(q.value.trim()),shown=0;
+panels.forEach(function(p){{var open=v?true:p.dataset.vtPanel===tab,hits=0;
+[].forEach.call(p.querySelector('.vt__grid').children,function(c){{
+var ok=!v||n(c.textContent).indexOf(v)>-1;c.hidden=!ok;if(ok)hits++;}});
+p.hidden=!open||(!!v&&!hits);if(!p.hidden)shown+=hits;}});
+e.hidden=shown>0;}}
+chips.forEach(function(c){{c.addEventListener('click',function(){{
+chips.forEach(function(x){{x.classList.toggle('is-on',x===c);
+x.setAttribute('aria-pressed',x===c?'true':'false');}});tab=c.dataset.vt;run();}});}});
+q.addEventListener('input',run);run();}})();
+</script>'''
+    write("vinteo/index.html", shell(
+        path="vinteo/", title="Βίντεο: επεμβάσεις, συνεντεύξεις και ενημέρωση | LVRI Athens",
+        desc=f"{total} βίντεο του Dr. Κωνσταντίνου Μυρίλλα: καταγραφές λαπαροσκοπικών και "
+             f"υστεροσκοπικών επεμβάσεων, τηλεοπτικές συνεντεύξεις, ομιλίες και ενημέρωση "
+             f"για παθήσεις και θεραπείες.",
+        depth=d, body=body, active="vinteo",
+        jsonld=[crumb_ld,
+                {"@context": "https://schema.org", "@type": "ItemList",
+                 "name": "Βίντεο LVRI Athens", "numberOfItems": total,
+                 "itemListElement": [{"@type": "ListItem", "position": i + 1,
+                                      "item": video_ld(v)}
+                                     for i, v in enumerate(VIDEO_LIBRARY)]}]))
+    register("vinteo/", prio="0.7")
+    index("vinteo/", title="Βίντεο", desc=f"{total} βίντεο: επεμβάσεις, συνεντεύξεις, ενημέρωση",
+          kind="page", kw="βιντεο video youtube επεμβασεις συνεντευξεις ομιλιες καναλι")
+    for g in VIDEO_GROUPS:
+        index(f"vinteo/#vt-{g['slug']}", title=f"Βίντεο: {g['title']}",
+              desc=f"{len(g['items'])} βίντεο από το κανάλι του ιατρείου", kind="page",
+              kw=f"βιντεο video {g['title'].lower()}")
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -708,7 +818,7 @@ def build_clinic():
   <div class="wrap">{crumb}
     <p class="eyebrow">Από το {SITE['founded']}</p>
     <h1>Η κλινική</h1>
-    <p class="lede">{SITE['legal']} — κέντρο κοσμητικής γυναικολογίας και επανορθωτικής
+    <p class="lede">{SITE['legal']}: κέντρο κοσμητικής γυναικολογίας και επανορθωτικής
       χειρουργικής πυέλου με laser, στον Βύρωνα.</p>
   </div>
 </section>
@@ -722,7 +832,7 @@ def build_clinic():
         <li><span class="k">Email</span><span class="v"><a href="mailto:{SITE['email']}">{SITE['email']}</a></span></li>
       </ul>
       <a class="btn btn--ghost btn--sm" href="../epikoinonia/" style="margin-top:1rem">Χάρτης & ωράριο</a></div>
-    <div class="panel"><h3>Ο γιατρός</h3><p>Dr. Κωνσταντίνος Μυρίλλας — μαιευτήρας χειρουργός γυναικολόγος.</p>
+    <div class="panel"><h3>Ο γιατρός</h3><p>Dr. Κωνσταντίνος Μυρίλλας, μαιευτήρας χειρουργός γυναικολόγος.</p>
       <a class="btn btn--cta btn--sm" href="../dr-mirillas/">Βιογραφικό</a></div>
   </aside>
 </div>
@@ -761,7 +871,7 @@ def build_doctor(slug, legacy, name, role, photo, blurb):
     {body_html}
   </article>
   <aside class="doc__aside">{build_toc(body_html)}
-    <div class="panel"><h3>Ραντεβού</h3><p>Ζητήστε μια εκτίμηση — δεν δεσμεύει σε τίποτα.</p>
+    <div class="panel"><h3>Ραντεβού</h3><p>Ζητήστε μια εκτίμηση. Δεν δεσμεύει σε τίποτα.</p>
       <button class="btn btn--cta btn--sm" type="button" data-open="book">Ζητήστε ραντεβού</button></div>
   </aside>
 </div>{faq_html}{U.cta_band(d)}</main>'''
@@ -783,7 +893,7 @@ def build_contact():
          f"<p>{SITE['address']}, {SITE['postcode']}, {SITE['locality']}. Το pin στον χάρτη είναι "
          f"στις συντεταγμένες {SITE['lat']}, {SITE['lng']}.</p>"),
         ("Ποιες ώρες λειτουργεί;",
-         "<p>Δευτέρα έως Παρασκευή 09:00–17:00 και Σάββατο 09:00–15:00. Την Κυριακή είμαστε κλειστά.</p>"),
+         "<p>Δευτέρα έως Παρασκευή 09:00 έως 17:00 και Σάββατο 09:00 έως 15:00. Την Κυριακή είμαστε κλειστά.</p>"),
         ("Χρειάζεται ραντεβού;",
          "<p>Ναι. Καλέστε στο " + SITE["phone"] + " ή στείλτε αίτημα από τη φόρμα· απαντάμε "
          "την ίδια ή την επόμενη εργάσιμη.</p>"),
@@ -792,8 +902,8 @@ def build_contact():
          "κόλπου και επανορθωτικής χειρουργικής πυέλου με laser. Τα ραντεβού, οι εξετάσεις και "
          "οι θεραπείες laser γίνονται στο ιατρείο του Βύρωνα.</p>"),
         ("Από ποιες περιοχές έρχονται ασθενείς;",
-         "<p>Κυρίως από τον Βύρωνα και τις όμορες περιοχές — Καισαριανή, Παγκράτι, Ζωγράφου, "
-         "Υμηττό, Ηλιούπολη, Δάφνη — αλλά και από όλη την Αττική και την υπόλοιπη Ελλάδα.</p>"),
+         "<p>Κυρίως από τον Βύρωνα και τις όμορες περιοχές: Καισαριανή, Παγκράτι, Ζωγράφου, "
+         "Υμηττό, Ηλιούπολη, Δάφνη, αλλά και από όλη την Αττική και την υπόλοιπη Ελλάδα.</p>"),
         ("Μιλάτε αγγλικά;",
          '<p>Ναι. Οι βασικές σελίδες υπάρχουν και <a href="../en/">στα αγγλικά</a>.</p>'),
     ]
@@ -817,7 +927,7 @@ def build_contact():
   <section class="sec"><div class="wrap">
     <div class="grid-3">
       <article class="tile"><span class="tile__n">Διεύθυνση</span>
-        <h3>{SITE['address']}</h3><p>{SITE['postcode']}, {SITE['locality']} — {SITE['region']}</p>
+        <h3>{SITE['address']}</h3><p>{SITE['postcode']}, {SITE['locality']}, {SITE['region']}</p>
         <p><a class="btn btn--ghost btn--sm" href="{SITE['map']}" rel="noopener" target="_blank">Άνοιγμα στους χάρτες</a></p></article>
       <article class="tile"><span class="tile__n">Τηλέφωνο & email</span>
         <h3><a href="tel:{SITE['phone_href']}">{SITE['phone']}</a></h3>
@@ -829,7 +939,7 @@ def build_contact():
   <section class="sec sec--edge"><div class="wrap">
     <div class="sec__head"><p class="eyebrow">Χάρτης</p><h2>Βρείτε μας</h2></div>
     <div style="border:1px solid var(--line);border-radius:var(--r-l);overflow:hidden">
-      <iframe title="Χάρτης — {SITE['address']}" width="100%" height="420" style="border:0;display:block;filter:grayscale(.3) invert(.92) hue-rotate(180deg)"
+      <iframe title="Χάρτης: {SITE['address']}" width="100%" height="420" style="border:0;display:block;filter:grayscale(.3) invert(.92) hue-rotate(180deg)"
         loading="lazy" referrerpolicy="no-referrer-when-downgrade"
         src="https://www.google.com/maps?q={SITE['lat']},{SITE['lng']}&hl=el&z=16&output=embed"></iframe>
     </div>
@@ -844,8 +954,8 @@ def build_contact():
   {faq_html}
   {U.cta_band(d)}
 </main>'''
-    write("epikoinonia/index.html", shell(path="epikoinonia/", title="Επικοινωνία — Βύρωνας, Αθήνα | LVRI Athens",
-          desc=f"LVRI Athens: {SITE['address']}, {SITE['postcode']} {SITE['locality']}. Τηλέφωνο {SITE['phone']}, Δευτέρα–Παρασκευή 09:00–17:00 και Σάββατο 09:00–15:00.",
+    write("epikoinonia/index.html", shell(path="epikoinonia/", title="Επικοινωνία: Βύρωνας, Αθήνα | LVRI Athens",
+          desc=f"LVRI Athens: {SITE['address']}, {SITE['postcode']} {SITE['locality']}. Τηλέφωνο {SITE['phone']}, Δευτέρα έως Παρασκευή 09:00 έως 17:00 και Σάββατο 09:00 έως 15:00.",
           depth=d, body=body, active="epikoinonia",
           jsonld=[contact_ld, crumb_ld] + ([faq_ld] if faq_ld else [])))
     register("epikoinonia/", prio="0.9")
@@ -865,10 +975,10 @@ def build_terms():
   <article class="doc__main prose">{body_html}
     <h2 id="local">Τι κρατά αυτός ο ιστότοπος στη συσκευή σας</h2>
     <ul>
-      <li><b>Η λίστα μου</b> — όσα κρατήσατε με το «+».</li>
-      <li><b>Συνεδρίες Kegel</b> — ο μετρητής ολοκληρωμένων συνεδριών.</li>
-      <li><b>Επιλογές εμφάνισης</b> — κίνηση, αντίθεση, εναλλαγή hero.</li>
-      <li><b>Συγκατάθεση</b> — για τα cookies και για τις κλινικές φωτογραφίες.</li>
+      <li><b>Η λίστα μου</b>: όσα κρατήσατε με το «+».</li>
+      <li><b>Συνεδρίες Kegel</b>: ο μετρητής ολοκληρωμένων συνεδριών.</li>
+      <li><b>Επιλογές εμφάνισης</b>: κίνηση, αντίθεση, εναλλαγή hero.</li>
+      <li><b>Συγκατάθεση</b>: για τα cookies και για τις κλινικές φωτογραφίες.</li>
     </ul>
     <p>Όλα αυτά μένουν στον browser σας (localStorage). Δεν αποστέλλονται πουθενά, δεν συνδέονται
       με λογαριασμό και μπορείτε να τα σβήσετε από το εικονίδιο ρυθμίσεων στην κορυφή.</p>
@@ -893,7 +1003,7 @@ def topbar_en(depth, active=""):
                     for href, t in EN_NAV[:5])
     return f'''<header class="tb" id="topbar" data-at-top="1">
   <div class="tb__in">
-    <a class="tb__logo" href="{r}en/" aria-label="LVRI Athens — home">
+    <a class="tb__logo" href="{r}en/" aria-label="LVRI Athens, home">
       <span class="tb__word">LVRI<em>Athens</em></span></a>
     <nav class="tb__nav" aria-label="Main navigation">{links}</nav>
     <div class="tb__right">
@@ -946,7 +1056,7 @@ def en_shell(*, path, title, desc, depth, body, active=""):
 def build_en_home():
     d = 1
     # The legacy "en/home" record is the Greek homepage mirrored by mistake, with
-    # broken markup — so this page is written, not extracted. Every fact below
+    # broken markup, so this page is written, not extracted. Every fact below
     # already appears on the clinic's own English pages.
     body_html = f"""
 <h2 id="s1">What we do</h2>
@@ -957,7 +1067,7 @@ Vyronas; operations take place at REA Maternity Hospital, where Dr. Myrillas has
 the department of vaginal plastic and reconstructive pelvic laser surgery since 2013.</p>
 <h2 id="s2">What we treat</h2>
 <p>Urinary incontinence, uterine and vaginal prolapse, cystocele, rectocele and enterocele,
-vaginal dryness and atrophy, and vaginal laxity — with options that run from a painless
+vaginal dryness and atrophy, and vaginal laxity, with options that run from a painless
 in-office laser session to full vaginal reconstruction.</p>
 <h2 id="s3">Techniques</h2>
 <p>The practice works with Laser Vaginal Rejuvenation<sup>&reg;</sup> and Designer Laser
@@ -999,7 +1109,7 @@ and conditions in English; the full site is in
   <div class="sec__head"><p class="eyebrow">In English</p><h2>Procedures & conditions</h2></div>
   <div class="grid-3">{tiles}</div>
 </div></section></main>'''
-    write("en/index.html", en_shell(path="en/", title="LVRI Athens — Laser Vaginal Rejuvenation Institute",
+    write("en/index.html", en_shell(path="en/", title="LVRI Athens: Laser Vaginal Rejuvenation Institute",
           desc=C.meta_desc("en/home", "Cosmetic gynaecology and pelvic floor reconstruction with CO2 laser in Athens."),
           depth=d, body=body, active="en/"))
     register("en/", prio="0.7")
@@ -1042,7 +1152,7 @@ def build_404():
     <p class="eyebrow">404</p>
     <h1>Η σελίδα άλλαξε διεύθυνση</h1>
     <p class="lede" style="margin-inline:auto">Ο ιστότοπος ανανεώθηκε. Αν ήρθατε από παλιό σύνδεσμο,
-      ψάξτε από εδώ — ή πατήστε <kbd>⌘</kbd><kbd>K</kbd>.</p>
+      ψάξτε από εδώ, ή πατήστε <kbd>⌘</kbd><kbd>K</kbd>.</p>
     <div class="hero__acts" style="justify-content:center">
       <button class="btn btn--cta btn--lg" type="button" data-open="palette">Αναζήτηση</button>
       <a class="btn btn--glass btn--lg" href="/">Αρχική</a>
@@ -1082,7 +1192,7 @@ def build_index_files():
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {SITE['domain']}/sitemap.xml\n")
 
-    # Vercel: same conventions as version 1 — 301s, immutable asset caching, security headers.
+    # Vercel: same conventions as version 1: 301s, immutable asset caching, security headers.
     cfg = {
         "$schema": "https://openapi.vercel.sh/vercel.json",
         "trailingSlash": True, "cleanUrls": False,
@@ -1100,7 +1210,7 @@ def build_index_files():
         ],
     }
     write("vercel.json", json.dumps(cfg, indent=2, ensure_ascii=False) + "\n")
-    write(".vercelignore", "# Build sources — not part of the deployed site.\n"
+    write(".vercelignore", "# Build sources, not part of the deployed site.\n"
                            "_source/\n.htaccess\n_redirects\n")
 
 
@@ -1159,6 +1269,7 @@ def main():
     for slug, tag in ARTICLES:
         build_article(slug, tag)
     build_gallery()
+    build_videos()
     build_guide_page()
     build_kegel_page()
     build_mylist_page()
