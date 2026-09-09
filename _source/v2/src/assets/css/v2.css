@@ -448,6 +448,24 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
   font-size:.78rem;color:var(--dim-2)}
 .ft__base p{margin:0}
 .ft__base a:hover{color:#fff}
+/* the maker's signature: its own block, not a footnote in the terms line */
+.ft__by{display:flex;justify-content:center;margin-top:22px}
+.ft__by a{display:inline-flex;align-items:center;gap:.7rem;
+  padding:.55rem 1.15rem .55rem .6rem;border:1px solid var(--line);border-radius:100px;
+  background:var(--card);transition:border-color .25s var(--ease),background .25s var(--ease),
+  transform .25s var(--ease)}
+.ft__by a:hover{border-color:var(--red);background:var(--card-2);transform:translateY(-2px)}
+.ft__by-mark{flex:none;width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;
+  display:grid;place-items:center;font-family:var(--cond);font-weight:700;font-size:.74rem;
+  letter-spacing:.06em}
+.ft__by-k{display:block;font-family:var(--cond);font-size:.66rem;font-weight:700;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--dim-2);line-height:1;
+  margin-bottom:.18rem}
+.ft__by-n{display:flex;align-items:center;gap:.32rem;font-family:var(--display);font-weight:700;
+  font-size:.95rem;letter-spacing:-.01em;color:#fff;line-height:1.2}
+.ft__by-n svg{opacity:.6;transition:opacity .25s var(--ease)}
+.ft__by a:hover .ft__by-n{color:var(--red-hi)}
+.ft__by a:hover .ft__by-n svg{opacity:1}
 .ft__disclaimer{width:var(--wrap);margin:12px auto 0;font-size:.73rem;color:var(--dim-2);max-width:74ch}
 @media (max-width:1000px){.ft__grid{grid-template-columns:1fr 1fr}}
 @media (max-width:560px){.ft__grid{grid-template-columns:1fr}}

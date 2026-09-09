@@ -35,6 +35,7 @@ I = {
  "bookmark": '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>',
  "sliders": '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true"><path d="M4 8h10M18 8h2M4 16h4M12 16h8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="8" r="2" stroke="currentColor" stroke-width="1.6"/><circle cx="10" cy="16" r="2" stroke="currentColor" stroke-width="1.6"/></svg>',
  "burger": '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+ "ext": '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" aria-hidden="true"><path d="M8 16 16 8M9 8h7v7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
  "fb": '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.25-1.5 1.55-1.5h1.65V3.6c-.29-.04-1.27-.12-2.41-.12-2.39 0-4.02 1.46-4.02 4.13v2.3H7.5V13h2.77v8h3.23z"/></svg>',
  "yt": '<svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.75-1.77C18.3 5 12 5 12 5s-6.3 0-7.85.43A2.5 2.5 0 0 0 2.4 7.2 26 26 0 0 0 2 12a26 26 0 0 0 .4 4.8 2.5 2.5 0 0 0 1.75 1.77C5.7 19 12 19 12 19s6.3 0 7.85-.43a2.5 2.5 0 0 0 1.75-1.77A26 26 0 0 0 22 12a26 26 0 0 0-.4-4.8zM10 15V9l5.2 3-5.2 3z"/></svg>',
 }
@@ -154,6 +155,21 @@ def topbar(depth, active=""):
 </div>'''
 
 
+def credit(lang="el"):
+    """Η υπογραφή του κατασκευαστή στο κάτω μέρος κάθε σελίδας. Δικό της μπλοκ,
+    όχι χαμένη μέσα στη γραμμή των όρων χρήσης."""
+    kicker = "Σχεδιασμός & κατασκευή" if lang == "el" else "Designed & built by"
+    return f'''<div class="wrap ft__by">
+    <a href="{SITE['credit']['url']}" rel="noopener" target="_blank">
+      <span class="ft__by-mark" aria-hidden="true">CB</span>
+      <span>
+        <span class="ft__by-k">{kicker}</span>
+        <span class="ft__by-n">{SITE['credit']['name']}{I['ext']}</span>
+      </span>
+    </a>
+  </div>'''
+
+
 def footer(depth):
     r = rel(depth)
     hours = "".join(f"<li><span>{d}</span><b>{t}</b></li>" for d, t in SITE["hours"])
@@ -192,11 +208,11 @@ def footer(depth):
   </div>
   <div class="wrap ft__base">
     <p>© {TODAY[:4]} {SITE['name']} · {SITE['legal']}</p>
-    <p><a href="{r}oroi-chrisis/">Όροι χρήσης & απόρρητο</a> · <a href="{r}en/">English</a>
-      · Made by <a href="{SITE['credit']['url']}" rel="noopener" target="_blank">{SITE['credit']['name']}</a></p>
+    <p><a href="{r}oroi-chrisis/">Όροι χρήσης & απόρρητο</a> · <a href="{r}en/">English</a></p>
   </div>
   <p class="ft__disclaimer">Το περιεχόμενο είναι ενημερωτικό και δεν υποκαθιστά την ιατρική
     εξέταση. Κάθε περιστατικό αξιολογείται ξεχωριστά.</p>
+  {credit("el")}
 </footer>'''
 
 

@@ -1042,7 +1042,8 @@ def footer_en(depth):
       <ul class="ft__hours">{"".join(f"<li><span>{a}</span><b>{b}</b></li>" for a, b in SITE['hours_en'])}</ul></div>
   </div>
   <div class="wrap ft__base"><p>© {TODAY[:4]} {SITE['name']}</p>
-    <p><a href="{r}">Ελληνικά</a> · Made by <a href="{SITE['credit']['url']}" rel="noopener" target="_blank">{SITE['credit']['name']}</a></p></div>
+    <p><a href="{r}">Ελληνικά</a></p></div>
+  {U.credit("en")}
 </footer>'''
 
 
