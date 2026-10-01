@@ -158,10 +158,10 @@ def topbar(depth, active=""):
 def credit(lang="el"):
     """Η υπογραφή του κατασκευαστή στο κάτω μέρος κάθε σελίδας. Δικό της μπλοκ,
     όχι χαμένη μέσα στη γραμμή των όρων χρήσης."""
-    kicker = "Σχεδιασμός & κατασκευή" if lang == "el" else "Designed & built by"
+    kicker = "Made by"
     return f'''<div class="wrap ft__by">
     <a href="{SITE['credit']['url']}" rel="noopener" target="_blank">
-      <span class="ft__by-mark" aria-hidden="true">CB</span>
+      <span class="ft__by-mark" aria-hidden="true">A</span>
       <span>
         <span class="ft__by-k">{kicker}</span>
         <span class="ft__by-n">{SITE['credit']['name']}{I['ext']}</span>
@@ -472,6 +472,14 @@ def billboard(depth):
         <button class="btn btn--cta" type="button" data-open="book">{I['play']}Ζητήστε ραντεβού</button>
         <a class="btn btn--ghost" href="{r}odigos-symptomaton/">Οδηγός συμπτωμάτων</a>
       </div>
+      <a class="hero-pdf" href="{r}assets/docs/lvri-athens.pdf" target="_blank" rel="noopener">
+        <span class="hero-pdf__cover">{pic("pdf-lvr-cover.jpg", "", 720, 818, depth)}</span>
+        <span class="hero-pdf__body">
+          <span class="hero-pdf__k">Το έντυπο του ιατρείου</span>
+          <span class="hero-pdf__t">Laser Vaginal Rejuvenation</span>
+          <span class="btn btn--cta btn--sm">Διαβάστε το PDF</span>
+        </span>
+      </a>
     </div>
   </div>
 </section>'''

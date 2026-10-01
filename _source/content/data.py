@@ -45,7 +45,7 @@ SITE = {
     "areas": ["Βύρωνας", "Καισαριανή", "Παγκράτι", "Ζωγράφου", "Υμηττός",
               "Ηλιούπολη", "Δάφνη", "Άγιος Αρτέμιος", "Νέος Κόσμος",
               "Κέντρο Αθήνας", "Αργυρούπολη", "Γλυφάδα"],
-    "credit": {"name": "ClinicBrain", "url": "https://clinicbrain.gr"},
+    "credit": {"name": "Astra", "url": "https://astramarketing.gr"},
     "social": {
         "facebook": "https://www.facebook.com/lvriathens/",
         "youtube": "https://www.youtube.com/user/KMyrillas",
@@ -116,18 +116,6 @@ TREATMENTS = [
                      recovery="Χωρίς ανάρρωση", pain="Ανώδυνο"),
          treats=["Ξηρότητα & ατροφία", "Ήπια χαλάρωση", "Ήπια ακράτεια", "Αρχόμενη ορθοκήλη"]),
 
-    dict(slug="g-shot", legacy="g-shot",
-         title="G-Shot®",
-         image="treat-g-shot.jpg",
-         short="Ενίσχυση σημείου G",
-         meta="G-Shot®: ένεση υαλουρονικού υψηλού μοριακού βάρους στο σημείο G με τοπική αναισθησία. Επίσκεψη κάτω από 30 λεπτά, χωρίς χρόνο ανάρρωσης.",
-         lead="Ένεση υαλουρονικού υψηλού μοριακού βάρους στο σημείο G, με τη βοήθεια ειδικού κολποσκοπίου.",
-         invasive="minor",
-         matrix=dict(setting="Ιατρείο", anesthesia="Τοπική",
-                     sessions="1 συνεδρία", duration="Επίσκεψη κάτω από 30 λεπτά",
-                     recovery="Χωρίς ανάρρωση", pain="Ανώδυνο"),
-         treats=["Σεξουαλική διέγερση", "Ένταση οργασμού"]),
-
     dict(slug="aidoioplastiki", legacy="plastiki-aidoiou",
          title="Αιδοιοπλαστική",
          image="treat-aidoioplastiki.jpg",
@@ -164,6 +152,18 @@ TREATMENTS = [
                      sessions="1 επέμβαση", duration="Εξατομικευμένη",
                      recovery="Κατά περίπτωση", pain="Υπό αναισθησία"),
          treats=["Κυστεοκήλη", "Ορθοκήλη & εντεροκήλη", "Πρόπτωση μήτρας"]),
+
+    dict(slug="g-shot", legacy="g-shot",
+         title="G-Shot®",
+         image="treat-g-shot.jpg",
+         short="Ενίσχυση σημείου G",
+         meta="G-Shot®: ένεση υαλουρονικού υψηλού μοριακού βάρους στο σημείο G με τοπική αναισθησία. Επίσκεψη κάτω από 30 λεπτά, χωρίς χρόνο ανάρρωσης.",
+         lead="Ένεση υαλουρονικού υψηλού μοριακού βάρους στο σημείο G, με τη βοήθεια ειδικού κολποσκοπίου.",
+         invasive="minor",
+         matrix=dict(setting="Ιατρείο", anesthesia="Τοπική",
+                     sessions="1 συνεδρία", duration="Επίσκεψη κάτω από 30 λεπτά",
+                     recovery="Χωρίς ανάρρωση", pain="Ανώδυνο"),
+         treats=["Σεξουαλική διέγερση", "Ένταση οργασμού"]),
 ]
 
 # ── Symptom guide ─────────────────────────────────────────────────────────────
@@ -339,6 +339,7 @@ VIDEO_GROUPS = [
               "βίντεο για παθήσεις, θεραπείες και πρόληψη.",
          warn="",
          items=[
+        V("258HlPMsHnQ", "Εμμηνόπαυση, ξηρότητα κόλπου και Erbium laser: όσα δεν σου είπε κανείς", 3289, "2025-11-19"),
         V("Eg1q9phhklk", "Ενδομητρίωση: τι είναι, πού εντοπίζεται και πώς θεραπεύεται", 159, "2021-04-03"),
         V("WrXrhO9063c", "Κωνσταντίνος Μυρίλλας, μαιευτήρας χειρουργός γυναικολόγος", 149, "2021-04-01"),
         V("NjDBP5ciyq8", "HPV: τι είναι, τι προβλήματα δημιουργεί και πώς αντιμετωπίζεται", 282, "2021-04-01"),
@@ -398,8 +399,20 @@ VIDEO_GROUPS = [
 
 VIDEO_LIBRARY = [dict(v, group=g["slug"]) for g in VIDEO_GROUPS for v in g["items"]]
 
+# Βίντεο ανά θεραπεία: μόνο όσα μιλούν για τη συγκεκριμένη θεραπεία, με τη σειρά
+# που εμφανίζονται στη σελίδα της. Θεραπεία χωρίς σχετικό βίντεο δεν έχει σειρά.
+TREATMENT_VIDEOS = {
+    "anazoogonisi-kolpou": ["258HlPMsHnQ", "DqMU1oGjiYI", "LXxzwIUyJxE", "CWBUzBTY9Ds",
+                            "aiWCtJKY7-k", "3o-3ZxK0Lu0", "6q84Aew3qzc", "pgWN-S56Djo",
+                            "oqNHCo-P8x0", "GNLicz9-bKI", "TogV_N-yK6k", "Bg40rl4uLJs"],
+    "g-shot": ["laGmpqXs_U0"],
+    "laser-plastiki-kolpou": ["QJb-8_KTkTQ", "d3Vn4NYxx8Q", "fHYs0WhivBk", "q5PxY4sgaWk",
+                              "Z6CR-BathFM"],
+    "xeirourgiki-pyelikou-edafous": ["QJb-8_KTkTQ", "fHYs0WhivBk", "Z6CR-BathFM"],
+}
+
 # Ό,τι δείχνει η σειρά βίντεο της αρχικής: τα θεματικά κοντινότερα στο ιατρείο.
-HOME_VIDEOS = ["DqMU1oGjiYI", "44M7wSk0Tec", "IgQ9-sOmHEQ", "3o-3ZxK0Lu0", "LXxzwIUyJxE",
+HOME_VIDEOS = ["258HlPMsHnQ", "DqMU1oGjiYI", "44M7wSk0Tec", "IgQ9-sOmHEQ", "3o-3ZxK0Lu0", "LXxzwIUyJxE",
                "6q84Aew3qzc", "QJb-8_KTkTQ", "pgWN-S56Djo", "CWBUzBTY9Ds", "aiWCtJKY7-k",
                "laGmpqXs_U0", "nFouvGCASEA", "xHTLQfCdqm0", "Bg40rl4uLJs"]
 

@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(HERE, "lib"))
 import content as C
 import ui as U
 from content import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS, RED_FLAGS,
-                     KEGEL, VIDEO_GROUPS, VIDEO_LIBRARY, HOME_VIDEOS,
+                     KEGEL, VIDEO_GROUPS, VIDEO_LIBRARY, HOME_VIDEOS, TREATMENT_VIDEOS,
                      YOUTUBE_CHANNEL, EN_PAGES, CONDS, TREATS, LEGACY, TODAY, rel,
                      ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES)
 
@@ -233,6 +233,9 @@ def build_treatment(t):
     treats = "".join(f"<li>{html.escape(x)}</li>" for x in t["treats"])
     related = [c for c in CONDITIONS if slug in c["treatments"]]
     rel_cards = [U.condition_card(c, d) for c in related]
+    by_id = {v["id"]: v for v in VIDEO_LIBRARY}
+    vids = [by_id[i] for i in TREATMENT_VIDEOS.get(slug, []) if i in by_id]
+    vid_cards = [U.video_card(v, d) for v in vids]
     toc = build_toc(body_html)
     aside = f'''{toc}
 <div class="panel"><h3>Με μια ματιά</h3><ul class="facts">{facts}</ul></div>
@@ -241,7 +244,12 @@ def build_treatment(t):
   <p>Τέσσερα βήματα στη συσκευή σας, καμία αποστολή δεδομένων.</p>
   <button class="btn btn--cta btn--sm" type="button" data-open="scanner">Σαρωτής συμπτωμάτων</button></div>
 <div class="panel"><h3>Ζητήστε εκτίμηση</h3><p>Απαντάμε την ίδια ή την επόμενη εργάσιμη.</p>
-  <button class="btn btn--cta btn--sm" type="button" data-open="book" data-topic="{html.escape(t['title'])}">Ραντεβού</button></div>'''
+  <button class="btn btn--cta btn--sm" type="button" data-open="book" data-topic="{html.escape(t['title'])}">Ραντεβού</button></div>
+<div class="panel panel--pdf"><h3>Ενημερωτικό έντυπο</h3>
+  <p>Laser Vaginal Rejuvenation: το φυλλάδιο του ιατρείου.</p>
+  <a class="btn btn--cta btn--sm" href="{rel(d)}assets/docs/lvri-athens.pdf" target="_blank" rel="noopener">Διαβάστε το PDF</a>
+  <a class="panel__cover" href="{rel(d)}assets/docs/lvri-athens.pdf" target="_blank" rel="noopener" tabindex="-1" aria-hidden="true">
+    {U.pic("pdf-lvr-cover.jpg", "", 720, 818, d)}</a></div>'''
 
     body = f'''
 {U.hero_photo(t.get('image'), t['title'], d)}
@@ -265,6 +273,8 @@ def build_treatment(t):
   <article class="doc__main prose">{body_html}</article>
   <aside class="doc__aside">{aside}</aside>
 </div>
+{U.row(rid="r-vid", title="Βίντεο", eyebrow="για τη θεραπεία", cards=vid_cards,
+       all_href=rel(d) + "vinteo/", all_label="Όλα τα βίντεο", kind="nf-row--wide") if vid_cards else ""}
 {faq_html}
 {U.row(rid="r-rel", eyebrow="Σχετικά", title="Παθήσεις που αντιμετωπίζει", cards=rel_cards) if rel_cards else ""}
 {U.cta_band(d, title="Μια ερώτηση δεν κοστίζει τίποτα")}
