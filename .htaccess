@@ -11,6 +11,7 @@ RedirectMatch 301 ^/anazoogonisi\-kolpou/?$ /therapeies/anazoogonisi-kolpou/
 RedirectMatch 301 ^/apolafste\-tin\-kathe\-mera\-kratiste\-makria\-tin\-kolpiki\-ksirotita/?$ /arthra/apolafste-tin-kathe-mera-kratiste-makria-tin-kolpiki-ksirotita/
 RedirectMatch 301 ^/arthro\-gia\-tin\-akrateia\-ouron/?$ /arthra/arthro-gia-tin-akrateia-ouron/
 RedirectMatch 301 ^/arthro\-gia\-tin\-kolpiki\-proptosi/?$ /arthra/arthro-gia-tin-kolpiki-proptosi/
+RedirectMatch 301 ^/category/mi\-katigoriopoiimeno/?$ /arthra/
 RedirectMatch 301 ^/david\-l\-matlock/?$ /dr-matlock/
 RedirectMatch 301 ^/dr\-k\-mirillas/?$ /dr-mirillas/
 RedirectMatch 301 ^/epikinonia/?$ /epikoinonia/

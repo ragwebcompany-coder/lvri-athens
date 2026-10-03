@@ -151,6 +151,9 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
 .hero-title span{display:block}
 .hero-subtitle{font-family:var(--cond);font-weight:700;font-size:clamp(1rem,1.5vw,1.53rem);
   letter-spacing:.3em;text-transform:uppercase;color:#fff;margin:0 0 1rem}
+.hero-h1{margin:0;font:inherit;letter-spacing:normal;text-transform:none;line-height:inherit;max-width:none}
+.hero-h1>.hero-title,.hero-h1>.hero-subtitle{display:block}
+.hero-h1>.hero-subtitle{letter-spacing:.22em;line-height:1.35}
 .hero-badge-row{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
 .hero-badge{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
   width:40px;height:40px;flex:none;border-radius:.25rem;background:var(--red);color:#fff;
@@ -800,3 +803,12 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
     transition-duration:.05s!important;scroll-behavior:auto!important}}
 @media print{.tb,.ov,.nf-row__nav,.totop,.ck,.progress{display:none!important}
   body{background:#fff;color:#000}}
+
+/* ── doctor byline panel ───────────────────────────────────────────────────── */
+.panel__doc{display:flex;align-items:center;gap:.8rem;margin-bottom:1rem;color:var(--ink);text-decoration:none;font-size:.9rem;line-height:1.35}
+.panel__doc picture{flex:none}
+.panel__doc img{width:56px;height:56px;border-radius:50%;object-fit:cover;object-position:center 15%}
+.panel__doc span{color:var(--dim)}
+.panel__doc b{color:var(--ink);font-weight:700}
+.byline{display:flex;align-items:center;gap:.5rem}
+.byline a{color:inherit;text-decoration:underline;text-underline-offset:.2em}

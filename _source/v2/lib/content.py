@@ -31,7 +31,8 @@ sys.path.insert(0, CONTENT)
 from data import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS,   # noqa: E402
                   RED_FLAGS, KEGEL, VIDEOS, VIDEO_GROUPS, VIDEO_LIBRARY, TREATMENT_VIDEOS,
                   HOME_VIDEOS, YOUTUBE_CHANNEL, EN_PAGES, MONTHS,
-                  ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES)
+                  ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES,
+                  DOCTOR, ARTICLE_SEO, HOME_FAQ, EN_SEO)
 
 LEGACY = json.load(open(os.path.join(CONTENT, "legacy.json"), encoding="utf-8"))
 TODAY = datetime.date.today().isoformat()
@@ -45,6 +46,7 @@ URLMAP = {
     "david-l-matlock": "dr-matlock/", "epikinonia": "epikoinonia/",
     "oroi-chrisis-politiki-aporritou": "oroi-chrisis/", "iatrika-arthra": "arthra/",
     "photo-gallery": "gallery/", "video-gallery": "vinteo/",
+    "category/mi-katigoriopoiimeno": "arthra/",      # the old WordPress blog archive
 }
 for _c in CONDITIONS:
     URLMAP[_c["legacy"]] = f"pathiseis/{_c['slug']}/"
@@ -54,6 +56,21 @@ for _slug, _tag in ARTICLES:
     URLMAP.setdefault(_slug, f"arthra/{_slug}/")
 for _new, _legacy, _title in EN_PAGES:
     URLMAP[_legacy] = f"en/{_new}/"
+
+# Greek page <-> its English counterpart, for hreflang. Only true translations
+# are paired; everything else stays Greek-only.
+_PAIRS = [
+    ("", "en/"),
+    ("i-kliniki/", "en/the-clinic/"),
+    ("pathiseis/akrateia-ouron/", "en/urinary-incontinence/"),
+    ("pathiseis/ksirotita-kolpou/", "en/vaginal-dryness/"),
+    ("therapeies/anazoogonisi-kolpou/", "en/vaginal-atrophy/"),
+    ("therapeies/laser-plastiki-kolpou/", "en/vaginal-tightening-laser/"),
+    ("therapeies/aidoioplastiki/", "en/designer-laser-vaginoplasty/"),
+]
+HREFLANG = {}
+for _el, _en in _PAIRS:
+    HREFLANG[_el] = HREFLANG[_en] = (_el, _en)
 
 PID = {
     "3": "oroi-chrisis-politiki-aporritou", "26": "laser-kolpou", "31": "plastiki-aidoiou",

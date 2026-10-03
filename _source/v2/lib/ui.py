@@ -13,10 +13,10 @@ import re, os, json, html, struct
 from content import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS, RED_FLAGS,
                      KEGEL, CONDS, TREATS, rel, article_title,
                      article_pretty_date, read_minutes, plain, TODAY,
-                     ARTICLE_IMAGES)
+                     ARTICLE_IMAGES, HREFLANG, DOCTOR)
 from content import ROOT as _C_ROOT
 
-ASSET_V = "4"
+ASSET_V = "5"
 
 # ── icons ────────────────────────────────────────────────────────────────────
 I = {
@@ -60,8 +60,28 @@ FONTS = ("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;80
          "family=Roboto+Condensed:wght@400;500;700&display=swap")
 
 
-def head(*, title, desc, depth, canonical, lang="el", jsonld=None, body_class=""):
+def head(*, title, desc, depth, canonical, lang="el", jsonld=None, body_class="",
+         image=None, og_type="website", noindex=False, preload=None):
+    """`image` is the page's own photograph (og:image), `preload` the LCP image
+    stem to fetch early, `noindex` keeps utility pages out of the index."""
     r = rel(depth)
+    og_dim = _img_size(image) if image else None
+    if not og_dim or og_dim[0] < 600:          # too small for a large social card
+        image, og_dim = "clinic-team.jpg", _img_size("clinic-team.jpg")
+    og_img = f"{SITE['domain']}/assets/img/{image}"
+    og_size = (f'<meta property="og:image:width" content="{og_dim[0]}">\n'
+               f'<meta property="og:image:height" content="{og_dim[1]}">\n') if og_dim else ""
+    robots = ("noindex, follow" if noindex else
+              "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1")
+    alt = ""
+    pair = HREFLANG.get(canonical)
+    if pair and not noindex:
+        el_url, en_url = pair
+        alt = (f'<link rel="alternate" hreflang="el" href="{SITE["domain"]}/{el_url}">\n'
+               f'<link rel="alternate" hreflang="en" href="{SITE["domain"]}/{en_url}">\n'
+               f'<link rel="alternate" hreflang="x-default" href="{SITE["domain"]}/{el_url}">\n')
+    pre = (f'<link rel="preload" as="image" href="{r}assets/img/{preload}.webp" '
+           f'type="image/webp" fetchpriority="high">\n') if preload else ""
     ld = ""
     for block in (jsonld or []):
         ld += ('<script type="application/ld+json">'
@@ -76,22 +96,26 @@ def head(*, title, desc, depth, canonical, lang="el", jsonld=None, body_class=""
 <meta name="description" content="{desc}">
 <meta name="theme-color" content="#000000">
 <meta name="color-scheme" content="dark">
+<meta name="robots" content="{robots}">
 <link rel="canonical" href="{SITE['domain']}/{canonical}">
-<link rel="icon" href="{r}assets/img/favicon-144.png" type="image/png">
+{alt}<link rel="icon" href="{r}assets/img/favicon-144.png" type="image/png">
 <link rel="apple-touch-icon" href="{r}assets/img/favicon-144.png">
 <meta name="geo.region" content="{SITE['region_iso']}">
 <meta name="geo.placename" content="{SITE['locality']}">
 <meta name="geo.position" content="{SITE['lat']};{SITE['lng']}">
 <meta name="ICBM" content="{SITE['lat']}, {SITE['lng']}">
-<meta property="og:type" content="website">
+<meta property="og:type" content="{og_type}">
 <meta property="og:locale" content="{'el_GR' if lang == 'el' else 'en_GB'}">
 <meta property="og:site_name" content="{SITE['name']}">
 <meta property="og:title" content="{html.escape(title)}">
 <meta property="og:description" content="{desc}">
 <meta property="og:url" content="{SITE['domain']}/{canonical}">
-<meta property="og:image" content="{SITE['domain']}/assets/img/clinic-team.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<meta property="og:image" content="{og_img}">
+{og_size}<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{html.escape(title)}">
+<meta name="twitter:description" content="{desc}">
+<meta name="twitter:image" content="{og_img}">
+{pre}<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{FONTS}" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="{FONTS}"></noscript>
@@ -345,7 +369,7 @@ def video_card(v, depth, *, kicker=""):
     return _slide(f'''<button class="nf-card nf-card--video" type="button" data-video="{v["id"]}"
     aria-label="Αναπαραγωγή: {html.escape(title, quote=True)}">
     <span class="nf-card__img">
-      <img src="https://i.ytimg.com/vi/{v["id"]}/hqdefault.jpg" alt="" loading="lazy"
+      <img src="https://i.ytimg.com/vi/{v["id"]}/hqdefault.jpg" alt="{html.escape(title, quote=True)}" loading="lazy"
            decoding="async" width="480" height="360">
       <span class="nf-card__play" aria-hidden="true"><span>{I['play']}</span></span>
       {f'<span class="nf-card__dur">{dur}</span>' if dur else ''}
@@ -446,7 +470,8 @@ def pic(name, alt, w, h, depth, *, sizes="", eager=False):
         w, h = real
     attrs = (f' width="{w}" height="{h}" alt="{html.escape(alt, quote=True)}"'
              f'{" sizes=" + chr(34) + sizes + chr(34) if sizes else ""}'
-             f'{"" if eager else " loading=" + chr(34) + "lazy" + chr(34)} decoding="async"')
+             f'{" fetchpriority=" + chr(34) + "high" + chr(34) if eager else " loading=" + chr(34) + "lazy" + chr(34)}'
+             f' decoding="async"')
     return (f'<picture><source srcset="{r}assets/img/{stem}.webp" type="image/webp">'
             f'<img src="{r}assets/img/{name}"{attrs}></picture>')
 
@@ -455,12 +480,13 @@ def pic(name, alt, w, h, depth, *, sizes="", eager=False):
 def billboard(depth):
     r = rel(depth)
     return f'''<section class="hero-section">
+  <picture style="display:contents"><source srcset="{r}assets/img/clinic-team.webp" type="image/webp">
   <img class="hero-bg" src="{r}assets/img/clinic-team.jpg" width="1200" height="800"
-       alt="Ο Dr. Κωνσταντίνος Μυρίλλας με την ομάδα του LVRI Athens" fetchpriority="high">
+       alt="Ο Dr. Κωνσταντίνος Μυρίλλας με την ομάδα του LVRI Athens στο ιατρείο στον Βύρωνα" fetchpriority="high"></picture>
   <div class="hero-overlay">
     <div class="hero-content">
-      <h1 class="hero-title"><span>LVRI</span><span>Athens</span></h1>
-      <p class="hero-subtitle">Laser πλαστική κόλπου</p>
+      <h1 class="hero-h1"><span class="hero-title"><span>LVRI</span><span>Athens</span></span>
+        <span class="hero-subtitle">{html.escape(SITE['home_h1'])}</span></h1>
       <div class="hero-badge-row">
         <span class="hero-badge" aria-hidden="true"><span>ΑΠΟ</span><span>08</span></span>
         <span class="hero-badge-text">Κοσμητική γυναικολογία στην Αθήνα από το {SITE['founded']}</span>
@@ -886,6 +912,17 @@ def faq_block(title, pairs, prefix="faq"):
     <div class="faq">{items}</div>
   </div>
 </section>''', ld
+
+
+def doctor_panel(depth, lang="el"):
+    r = rel(depth)
+    k, role, cta = (("Υπεύθυνος ιατρός", DOCTOR["role"], "Βιογραφικό") if lang == "el" else
+                    ("Your doctor", DOCTOR["role_en"], "Biography (Greek)"))
+    name = DOCTOR["name"] if lang == "el" else DOCTOR["name_en"]
+    return f'''<div class="panel panel--doc"><h3>{k}</h3>
+  <a class="panel__doc" href="{r}dr-mirillas/">{pic("dr-myrillas.jpg", name, 500, 700, depth)}
+    <span><b>{html.escape(name)}</b><br>{html.escape(role)}</span></a>
+  <a class="btn btn--ghost btn--sm" href="{r}dr-mirillas/">{cta}</a></div>'''
 
 
 def cta_band(depth, *, title="Μιλήστε με τον γιατρό",

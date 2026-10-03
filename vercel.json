@@ -49,6 +49,11 @@
       "permanent": true
     },
     {
+      "source": "/category/mi-katigoriopoiimeno/",
+      "destination": "/arthra/",
+      "permanent": true
+    },
+    {
       "source": "/david-l-matlock/",
       "destination": "/dr-matlock/",
       "permanent": true

@@ -16,7 +16,8 @@ import ui as U
 from content import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS, RED_FLAGS,
                      KEGEL, VIDEO_GROUPS, VIDEO_LIBRARY, HOME_VIDEOS, TREATMENT_VIDEOS,
                      YOUTUBE_CHANNEL, EN_PAGES, CONDS, TREATS, LEGACY, TODAY, rel,
-                     ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES)
+                     ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES,
+                     DOCTOR, ARTICLE_SEO, HOME_FAQ, EN_SEO)
 
 OUT = os.path.abspath(os.environ.get("LVRI2_OUT") or os.path.join(HERE, "site"))
 SRC = os.path.join(HERE, "src")
@@ -43,8 +44,8 @@ def index(url, *, title, desc, kind, hue=None, kw=""):
                    "h": hue if hue is not None else U.hue(url), "kw": kw})
 
 
-def register(url, *, prio="0.6", freq="monthly"):
-    PAGES.append((url, prio, freq))
+def register(url, *, prio="0.6", freq="monthly", image=None):
+    PAGES.append((url, prio, freq, image))
 
 
 # ── shared JSON-LD ───────────────────────────────────────────────────────────
@@ -63,6 +64,11 @@ def clinic_ld():
         "address": address_ld(),
         "geo": {"@type": "GeoCoordinates", "latitude": SITE["lat"], "longitude": SITE["lng"]},
         "hasMap": SITE["map_full"], "foundingDate": SITE["founded"],
+        "image": [SITE["domain"] + "/assets/img/clinic-team.jpg"],
+        "logo": SITE["domain"] + "/assets/img/logo.png",
+        "description": SITE["about"],
+        "founder": {"@id": SITE["domain"] + "/dr-mirillas/#physician"},
+        "isAcceptingNewPatients": True,
         "priceRange": "€€", "knowsLanguage": ["el", "en"],
         "areaServed": [{"@type": "Place", "name": a} for a in SITE["areas"]]
                       + [{"@type": "AdministrativeArea", "name": SITE["region"]},
@@ -82,10 +88,50 @@ def clinic_ld():
 
 
 def doctor_ld():
+    """Physician is a LocalBusiness subtype, so credentials that only make sense
+    for a person (alumniOf, memberOf) live on the Person node in doctor_person_ld()."""
     return {"@type": "Physician", "@id": SITE["domain"] + "/dr-mirillas/#physician",
-            "name": "Dr. Κωνσταντίνος Μυρίλλας", "medicalSpecialty": "Gynecologic",
+            "name": DOCTOR["name"], "alternateName": DOCTOR["alt_names"],
+            "description": DOCTOR["blurb"],
+            "medicalSpecialty": ["Gynecologic", "Obstetric"],
             "url": SITE["domain"] + "/dr-mirillas/",
-            "worksFor": {"@id": SITE["domain"] + "/#clinic"}, "address": address_ld()}
+            "image": SITE["domain"] + "/assets/img/dr-myrillas.jpg",
+            "telephone": "+" + SITE["phone_href"].lstrip("+"),
+            "parentOrganization": {"@id": SITE["domain"] + "/#clinic"},
+            "address": address_ld(),
+            "geo": {"@type": "GeoCoordinates", "latitude": SITE["lat"], "longitude": SITE["lng"]},
+            "sameAs": [YOUTUBE_CHANNEL]}
+
+
+def doctor_person_ld():
+    return {"@type": "Person", "@id": SITE["domain"] + "/dr-mirillas/#person",
+            "name": DOCTOR["name"].replace("Dr. ", ""), "honorificPrefix": "Dr.",
+            "alternateName": DOCTOR["alt_names"], "jobTitle": DOCTOR["role"],
+            "description": DOCTOR["blurb"],
+            "url": SITE["domain"] + "/dr-mirillas/",
+            "image": SITE["domain"] + "/assets/img/dr-myrillas.jpg",
+            "worksFor": {"@id": SITE["domain"] + "/#clinic"},
+            "alumniOf": [{"@type": "CollegeOrUniversity", "name": n} for n in DOCTOR["alumni"]],
+            "memberOf": [{"@type": "Organization", "name": n} for n in DOCTOR["member_of"]],
+            "knowsAbout": DOCTOR["knows_about"], "knowsLanguage": ["el", "en"],
+            "sameAs": [YOUTUBE_CHANNEL]}
+
+
+def webpage_ld(path, title, desc, *, about=None, image=None, lang="el"):
+    """MedicalWebPage that ties a page to the doctor responsible for its content."""
+    url = f"{SITE['domain']}/{path}"
+    ld = {"@context": "https://schema.org", "@type": "MedicalWebPage", "@id": url + "#webpage",
+          "url": url, "name": title, "description": html.unescape(desc), "inLanguage": lang,
+          "isPartOf": {"@id": SITE["domain"] + "/#website"},
+          "author": {"@id": SITE["domain"] + "/dr-mirillas/#person"},
+          "publisher": {"@id": SITE["domain"] + "/#clinic"},
+          "audience": {"@type": "MedicalAudience", "audienceType": "Patient"}}
+    if about:
+        ld["about"] = about
+    if image:
+        ld["primaryImageOfPage"] = {"@type": "ImageObject",
+                                    "url": f"{SITE['domain']}/assets/img/{image}"}
+    return ld
 
 
 def site_ld():
@@ -96,7 +142,7 @@ def site_ld():
 
 def base_graph():
     return {"@context": "https://schema.org",
-            "@graph": [clinic_ld(), doctor_ld(), site_ld()]}
+            "@graph": [clinic_ld(), doctor_ld(), doctor_person_ld(), site_ld()]}
 
 
 # ── the anatomy diagram, restyled for the dark interface ─────────────────────
@@ -136,10 +182,12 @@ def page_scripts(depth):
 
 # ── page shell ───────────────────────────────────────────────────────────────
 def shell(*, path, title, desc, depth, body, active="", jsonld=None, lang="el",
-          body_class=""):
+          body_class="", **head_kw):
     ld = [base_graph()] + list(jsonld or [])
+    if head_kw.get("image") and "preload" not in head_kw:      # the hero photo is the LCP
+        head_kw["preload"] = head_kw["image"].rsplit(".", 1)[0]
     head = U.head(title=title, desc=desc, depth=depth, canonical=path, lang=lang,
-                  jsonld=ld, body_class=body_class)
+                  jsonld=ld, body_class=body_class, **head_kw)
     return (head + U.topbar(depth, active) + body + U.footer(depth)
             + U.tail(depth, extra_js=page_scripts(depth), lang=lang))
 
@@ -154,6 +202,18 @@ def build_home():
     a_cards = [U.article_card(s, tag, d) for s, tag in ARTICLES[:12]]
     by_id = {v['id']: v for v in VIDEO_LIBRARY}
     v_cards = [U.video_card(by_id[i], d) for i in HOME_VIDEOS if i in by_id]
+    faq_html, faq_ld = U.faq_block("Συχνές ερωτήσεις", [(q, f"<p>{a}</p>") for q, a in HOME_FAQ])
+    t_links = ", ".join(f'<a href="therapeies/{t["slug"]}/">{html.escape(t.get("anchor") or t["title"])}</a>'
+                        for t in TREATMENTS)
+    c_links = ", ".join(f'<a href="pathiseis/{c["slug"]}/">{html.escape(c.get("anchor") or c["title"])}</a>'
+                        for c in CONDITIONS)
+    home_intro = f"""<p>{SITE['about']}</p>
+      <p><b>Θεραπείες:</b> {t_links}.</p>
+      <p><b>Παθήσεις που αντιμετωπίζουμε:</b> {c_links}.</p>
+      <p>Το ιατρείο βρίσκεται στην οδό {SITE['address']} και εξυπηρετεί γυναίκες από όλη την
+        Αττική: {", ".join(SITE['areas'][:-1])} και {SITE['areas'][-1]}. Για ραντεβού καλέστε στο
+        <a href="tel:{SITE['phone_href']}">{SITE['phone']}</a> ή δείτε
+        <a href="epikoinonia/">χάρτη και ωράριο</a>.</p>"""
 
     body = U.billboard(d) + f"""
 <main id="main">
@@ -172,6 +232,14 @@ def build_home():
          all_href="arthra/", all_label="Όλα")}
 
   <div class="rv">{U.compare_section(d)}</div>
+
+  <section class="sec rv" id="about">
+    <div class="wrap wrap--narrow prose">
+      <p class="eyebrow">LVRI Athens</p>
+      <h2>{html.escape(SITE['home_h2'])}</h2>
+      {home_intro}
+    </div>
+  </section>
 
   <section class="sec sec--edge rv">
     <div class="wrap split">
@@ -194,11 +262,14 @@ def build_home():
     </div>
   </section>
 
+  {faq_html}
+
   {U.cta_band(d)}
 </main>"""
-    desc = C.meta_desc("home", "Κέντρο κοσμητικής γυναικολογίας και επανορθωτικής χειρουργικής πυέλου στην Αθήνα.")
-    write("index.html", shell(path="", title="Laser πλαστική κόλπου & πυελικό έδαφος, Αθήνα | LVRI Athens",
-                              desc=desc, depth=d, body=body, active="", body_class="is-home"))
+    desc = html.escape(SITE["home_desc"], quote=True)
+    write("index.html", shell(path="", title=SITE["home_title"],
+                              desc=desc, depth=d, body=body, active="", body_class="is-home",
+                              preload="clinic-team", jsonld=[faq_ld] if faq_ld else None))
     register("", prio="1.0", freq="weekly")
     index("", title="Αρχική", desc="LVRI Athens: θεραπείες, παθήσεις και εργαλεία", kind="page",
           kw="αρχικη home lvri athens")
@@ -209,7 +280,9 @@ def build_home():
 # ══════════════════════════════════════════════════════════════════════════════
 def treatment_ld(t):
     return {"@context": "https://schema.org", "@type": "MedicalProcedure",
-            "name": t["title"], "alternateName": t["short"],
+            "@id": f"{SITE['domain']}/therapeies/{t['slug']}/#procedure",
+            "name": t["title"], "alternateName": [t["short"]] + t.get("aka", []),
+            "image": f"{SITE['domain']}/assets/img/{t['image']}",
             "url": f"{SITE['domain']}/therapeies/{t['slug']}/",
             "description": t["lead"], "bodyLocation": "Κόλπος / πυελικό έδαφος",
             "howPerformed": t["matrix"]["setting"] + " · " + t["matrix"]["anesthesia"],
@@ -219,12 +292,27 @@ def treatment_ld(t):
             "provider": {"@id": SITE["domain"] + "/#clinic"}}
 
 
+def related_articles(entry, depth, limit=6):
+    tags = entry.get("tags") or []
+    picks = [(s, tag) for s, tag in ARTICLES if tag in tags][:limit]
+    return [U.article_card(s, tag, depth) for s, tag in picks]
+
+
+def merged_faq(legacy_pairs, entry):
+    """The clinic's own FAQ first, then the extra questions kept in data.py."""
+    return list(legacy_pairs) + [(q, f"<p>{a}</p>") for q, a in entry.get("faq", [])]
+
+
 def build_treatment(t):
     d, slug = 2, t["slug"]
     body_html, faq_title, faq_pairs = C.prose(t["legacy"], d)
     body_html = anchor_headings(body_html)
-    faq_html, faq_ld = U.faq_block(faq_title, faq_pairs)
+    faq_html, faq_ld = U.faq_block(faq_title or f"Συχνές ερωτήσεις: {t['title']}",
+                                   merged_faq(faq_pairs, t))
     crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Θεραπείες", "therapeies/"), (t["title"], None)], d)
+    art_cards = related_articles(t, d)
+    page_title = t.get("seo_title") or C.seo_title(t["title"])
+    page_desc = html.escape(t["meta"][:158], quote=True)
     m = t["matrix"]
     facts = "".join(f'<li><span class="k">{k}</span><span class="v">{html.escape(v)}</span></li>'
                     for k, v in [("Πού γίνεται", m["setting"]), ("Αναισθησία", m["anesthesia"]),
@@ -240,6 +328,7 @@ def build_treatment(t):
     aside = f'''{toc}
 <div class="panel"><h3>Με μια ματιά</h3><ul class="facts">{facts}</ul></div>
 <div class="panel"><h3>Αντιμετωπίζει</h3><ul class="card__chips" style="margin:0">{treats}</ul></div>
+{U.doctor_panel(d)}
 <div class="panel"><h3>Ταιριάζει σε εσάς;</h3>
   <p>Τέσσερα βήματα στη συσκευή σας, καμία αποστολή δεδομένων.</p>
   <button class="btn btn--cta btn--sm" type="button" data-open="scanner">Σαρωτής συμπτωμάτων</button></div>
@@ -255,7 +344,7 @@ def build_treatment(t):
 {U.hero_photo(t.get('image'), t['title'], d)}
   <div class="wrap">{crumb}
     <p class="hero__badge"><span class="k">{html.escape(t['short'])}</span>{U.lvl_badge(t['invasive'])}</p>
-    <h1>{html.escape(t['title'])}</h1>
+    <h1>{html.escape(t.get('h1') or t['title'])}</h1>
     <p class="lede">{html.escape(t['lead'])}</p>
     <ul class="hero__meta">
       <li>{U.I['pin']}{html.escape(m['setting'])}</li>
@@ -277,13 +366,20 @@ def build_treatment(t):
        all_href=rel(d) + "vinteo/", all_label="Όλα τα βίντεο", kind="nf-row--wide") if vid_cards else ""}
 {faq_html}
 {U.row(rid="r-rel", eyebrow="Σχετικά", title="Παθήσεις που αντιμετωπίζει", cards=rel_cards) if rel_cards else ""}
+{U.row(rid="r-art", eyebrow="Διαβάστε επίσης", title="Άρθρα του ιατρείου", cards=art_cards,
+       all_href=rel(d) + "arthra/", all_label="Όλα τα άρθρα") if art_cards else ""}
 {U.cta_band(d, title="Μια ερώτηση δεν κοστίζει τίποτα")}
 </main>'''
+    path = f"therapeies/{slug}/"
     write(f"therapeies/{slug}/index.html",
-          shell(path=f"therapeies/{slug}/", title=C.seo_title(t["title"]), desc=html.escape(t["meta"][:158], quote=True),
-                depth=d, body=body, active="therapeies",
-                jsonld=[treatment_ld(t), crumb_ld] + ([faq_ld] if faq_ld else [])))
-    register(f"therapeies/{slug}/", prio="0.9")
+          shell(path=path, title=page_title, desc=page_desc,
+                depth=d, body=body, active="therapeies", image=t.get("image"),
+                jsonld=[treatment_ld(t), crumb_ld,
+                        webpage_ld(path, page_title, page_desc, image=t.get("image"),
+                                   about={"@id": SITE["domain"] + "/" + path + "#procedure"})]
+                       + [dict(video_ld(v), **{"@context": "https://schema.org"}) for v in vids]
+                       + ([faq_ld] if faq_ld else [])))
+    register(f"therapeies/{slug}/", prio="0.9", image=t.get("image"))
     index(f"therapeies/{slug}/", title=t["title"], desc=t["short"] + " · " + U.INVASIVE[t["invasive"]][0], kind="treatment",
           hue=U.hue(slug), kw=" ".join(t["treats"]) + " " + t["lead"] + " " + t["short"])
 
@@ -300,7 +396,7 @@ def build_treatments_hub():
 {U.hero_photo(HUB_IMAGES.get('therapeies/'), 'Θεραπείες', d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Πέντε διαδρομές</p>
-    <h1>Θεραπείες</h1>
+    <h1>Θεραπείες κοσμητικής γυναικολογίας</h1>
     <p class="lede">Από μια ανώδυνη συνεδρία laser στο ιατρείο μέχρι πλήρη ανάπλαση του κόλπου
       στο χειρουργείο. Δείτε τις δίπλα δίπλα και κρατήστε όσες σας αφορούν.</p>
     <div class="hero__acts">
@@ -318,9 +414,9 @@ def build_treatments_hub():
   </div></section>
   {U.cta_band(d)}
 </main>'''
-    write("therapeies/index.html", shell(path="therapeies/", title="Θεραπείες | LVRI Athens",
-          desc="Οι πέντε θεραπείες του LVRI Athens για ακράτεια, πρόπτωση, ξηρότητα και χαλάρωση κόλπου: δίπλα δίπλα, με χώρο, αναισθησία, συνεδρίες και ανάρρωση.",
-          depth=d, body=body, active="therapeies",
+    write("therapeies/index.html", shell(path="therapeies/", title="Θεραπείες: κολποπλαστική, αιδοιοπλαστική, laser | LVRI Athens",
+          desc="Κολποπλαστική με laser, αιδοιοπλαστική, αναζωογόνηση κόλπου, χειρουργική πυελικού εδάφους και G-Shot στην Αθήνα: σύγκριση συνεδριών και ανάρρωσης.",
+          depth=d, body=body, active="therapeies", image=HUB_IMAGES.get('therapeies/'),
           jsonld=[crumb_ld]))
     register("therapeies/", prio="0.9", freq="weekly")
     index("therapeies/", title="Θεραπείες", desc="Και οι πέντε, με σύγκριση", kind="page",
@@ -332,7 +428,10 @@ def build_treatments_hub():
 # ══════════════════════════════════════════════════════════════════════════════
 def condition_ld(c):
     return {"@context": "https://schema.org", "@type": "MedicalCondition",
-            "name": c["title"], "url": f"{SITE['domain']}/pathiseis/{c['slug']}/",
+            "@id": f"{SITE['domain']}/pathiseis/{c['slug']}/#condition",
+            "name": c["title"], "alternateName": c.get("aka", []),
+            "image": f"{SITE['domain']}/assets/img/{c['image']}",
+            "url": f"{SITE['domain']}/pathiseis/{c['slug']}/",
             "description": c["lead"],
             "possibleTreatment": [{"@type": "MedicalProcedure", "name": TREATS[s]["title"],
                                    "url": f"{SITE['domain']}/therapeies/{s}/"}
@@ -343,14 +442,19 @@ def build_condition(c):
     d, slug = 2, c["slug"]
     body_html, faq_title, faq_pairs = C.prose(c["legacy"], d)
     body_html = anchor_headings(body_html)
-    faq_html, faq_ld = U.faq_block(faq_title, faq_pairs)
+    faq_html, faq_ld = U.faq_block(faq_title or f"Συχνές ερωτήσεις: {c['title']}",
+                                   merged_faq(faq_pairs, c))
     crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Παθήσεις", "pathiseis/"), (c["title"], None)], d)
+    art_cards = related_articles(c, d)
+    page_title = c.get("seo_title") or C.seo_title(c["title"])
+    page_desc = html.escape(c["meta"][:158], quote=True)
     n, unit = c["stat"]
     rel_cards = [U.treatment_card(TREATS[s], d) for s in c["treatments"] if s in TREATS]
     toc = build_toc(body_html)
     aside = f'''{toc}
 <div class="panel"><h3>Με απλά λόγια</h3><p style="font-size:1rem;color:var(--ink)">«{html.escape(c['plain'])}»</p>
   <div class="stat"><b>{html.escape(n)}</b><span>{html.escape(unit)}</span></div></div>
+{U.doctor_panel(d)}
 <div class="panel"><h3>Δεν είστε σίγουρη;</h3><p>Ο σαρωτής συμπτωμάτων βάζει λέξεις σε αυτό που νιώθετε.</p>
   <button class="btn btn--cta btn--sm" type="button" data-open="scanner">Ξεκινήστε</button></div>
 <div class="panel"><h3>Ζητήστε εκτίμηση</h3><p>Απαντάμε την ίδια ή την επόμενη εργάσιμη.</p>
@@ -359,7 +463,7 @@ def build_condition(c):
 {U.hero_photo(c.get('image'), c['title'], d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Πάθηση</p>
-    <h1>{html.escape(c['title'])}</h1>
+    <h1>{html.escape(c.get('h1') or c['title'])}</h1>
     <p class="lede">{html.escape(c['lead'])}</p>
     <div class="hero__acts">
       <button class="btn btn--cta btn--lg" type="button" data-open="scanner">Σαρωτής συμπτωμάτων</button>
@@ -374,15 +478,20 @@ def build_condition(c):
 </div>
 {faq_html}
 {U.row(rid="r-rel", eyebrow="Επιλογές", title="Θεραπείες που συζητούνται", cards=rel_cards) if rel_cards else ""}
+{U.row(rid="r-art", eyebrow="Διαβάστε επίσης", title="Άρθρα του ιατρείου", cards=art_cards,
+       all_href=rel(d) + "arthra/", all_label="Όλα τα άρθρα") if art_cards else ""}
 <div class="rv">{U.anatomy_section(d, anatomy_svg())}</div>
 {U.cta_band(d)}
 </main>'''
+    path = f"pathiseis/{slug}/"
     write(f"pathiseis/{slug}/index.html",
-          shell(path=f"pathiseis/{slug}/", title=C.seo_title(c["title"]),
-                desc=html.escape(c["meta"][:158], quote=True), depth=d, body=body,
-                active="pathiseis",
-                jsonld=[condition_ld(c), crumb_ld] + ([faq_ld] if faq_ld else [])))
-    register(f"pathiseis/{slug}/", prio="0.9")
+          shell(path=path, title=page_title, desc=page_desc, depth=d, body=body,
+                active="pathiseis", image=c.get("image"),
+                jsonld=[condition_ld(c), crumb_ld,
+                        webpage_ld(path, page_title, page_desc, image=c.get("image"),
+                                   about={"@id": SITE["domain"] + "/" + path + "#condition"})]
+                       + ([faq_ld] if faq_ld else [])))
+    register(f"pathiseis/{slug}/", prio="0.9", image=c.get("image"))
     index(f"pathiseis/{slug}/", title=c["title"], desc=c["plain"], kind="condition",
           hue=U.hue(slug), kw=c["lead"] + " " + c["plain"])
 
@@ -395,7 +504,7 @@ def build_conditions_hub():
 {U.hero_photo(HUB_IMAGES.get('pathiseis/'), 'Παθήσεις', d)}
   <div class="wrap">{crumb}
     <p class="eyebrow">Πέντε καταστάσεις</p>
-    <h1>Παθήσεις</h1>
+    <h1>Παθήσεις πυελικού εδάφους</h1>
     <p class="lede">Πέντε καταστάσεις που φέρνουν τις περισσότερες γυναίκες στο ιατρείο.
       Διαβάστε τι είναι, ή αφήστε τον σαρωτή να δείξει τι ταιριάζει με όσα νιώθετε.</p>
     <div class="hero__acts">
@@ -410,9 +519,9 @@ def build_conditions_hub():
   <div class="rv">{U.scanner_section(d)}</div>
   {U.cta_band(d)}
 </main>'''
-    write("pathiseis/index.html", shell(path="pathiseis/", title="Παθήσεις πυελικού εδάφους | LVRI Athens",
+    write("pathiseis/index.html", shell(path="pathiseis/", title="Παθήσεις πυελικού εδάφους & κόλπου | LVRI Athens",
           desc="Ακράτεια ούρων, πρόπτωση μήτρας, κυστεοκήλη, ορθοκήλη και ξηρότητα κόλπου: τι είναι, πώς αναγνωρίζονται και ποιες θεραπείες τις αντιμετωπίζουν.",
-          depth=d, body=body, active="pathiseis",
+          depth=d, body=body, active="pathiseis", image=HUB_IMAGES.get('pathiseis/'),
           jsonld=[crumb_ld]))
     register("pathiseis/", prio="0.9", freq="weekly")
     index("pathiseis/", title="Παθήσεις", desc="Πέντε καταστάσεις και ο χάρτης της πυέλου", kind="page",
@@ -458,10 +567,17 @@ def build_article(slug, tag):
     if len(others) < 4:
         others += [(s, t) for s, t in ARTICLES if s != slug and (s, t) not in others][:6 - len(others)]
     rel_cards = [U.article_card(s, t, d) for s, t in others]
+    seo = ARTICLE_SEO.get(slug, {})
+    page_title = seo.get("title") or C.seo_title(title)
+    page_desc = html.escape(seo["desc"], quote=True) if seo.get("desc") else C.meta_desc(slug)
+    img = ARTICLE_IMAGES.get(slug)
     ld = {"@context": "https://schema.org", "@type": "Article", "headline": title[:110],
+          "name": title, "description": html.unescape(page_desc),
           "datePublished": iso or None, "dateModified": iso or None,
+          "image": f"{SITE['domain']}/assets/img/{img}" if img else None,
           "inLanguage": "el", "url": f"{SITE['domain']}/arthra/{slug}/",
-          "author": {"@id": SITE["domain"] + "/dr-mirillas/#physician"},
+          "isPartOf": {"@id": SITE["domain"] + "/#website"},
+          "author": {"@id": SITE["domain"] + "/dr-mirillas/#person"},
           "publisher": {"@id": SITE["domain"] + "/#clinic"},
           "mainEntityOfPage": f"{SITE['domain']}/arthra/{slug}/"}
     ld = {k: v for k, v in ld.items() if v is not None}
@@ -473,6 +589,7 @@ def build_article(slug, tag):
     <ul class="hero__meta">
       {f"<li>{U.I['clock']}{pretty}</li>" if pretty else ""}
       <li>{mins}′ ανάγνωση</li>
+      <li class="byline"><a href="{rel(d)}dr-mirillas/">{html.escape(DOCTOR["name"])}</a></li>
       <li>{U.save_inline(slug, title, f"arthra/{slug}/", "article")}</li>
     </ul>
   </div>
@@ -480,6 +597,7 @@ def build_article(slug, tag):
 <main id="main"><div class="wrap doc">
   <article class="doc__main prose">{body_html}</article>
   <aside class="doc__aside">{toc}
+    {U.doctor_panel(d)}
     <div class="panel"><h3>Ρωτήστε τον γιατρό</h3>
       <p>Ό,τι διαβάσατε εδώ αφορά τη γενική εικόνα. Το δικό σας περιστατικό θέλει εξέταση.</p>
       <button class="btn btn--cta btn--sm" type="button" data-open="book">Ζητήστε ραντεβού</button></div>
@@ -490,10 +608,11 @@ def build_article(slug, tag):
 {U.cta_band(d)}
 </main>'''
     write(f"arthra/{slug}/index.html",
-          shell(path=f"arthra/{slug}/", title=C.seo_title(title),
-                desc=C.meta_desc(slug), depth=d, body=body, active="arthra",
+          shell(path=f"arthra/{slug}/", title=page_title,
+                desc=page_desc, depth=d, body=body, active="arthra",
+                image=img, og_type="article",
                 jsonld=[ld, crumb_ld] + ([faq_ld] if faq_ld else [])))
-    register(f"arthra/{slug}/", prio="0.6")
+    register(f"arthra/{slug}/", prio="0.6", image=img)
     index(f"arthra/{slug}/", title=title, desc=f"{tag} · {pretty}" if pretty else tag,
           kind="article", hue=U.hue(slug), kw=C.plain(slug, 400))
 
@@ -542,9 +661,9 @@ e.hidden=shown>0;}}
 q.addEventListener('input',run);
 chips.forEach(function(c){{c.addEventListener('click',function(){{chips.forEach(function(x){{x.classList.toggle('is-on',x===c);}});tag=c.dataset.art;run();}});}});}})();
 </script>'''
-    write("arthra/index.html", shell(path="arthra/", title="Άρθρα | LVRI Athens",
-          desc="Κείμενα του ιατρείου για την ακράτεια ούρων, την πρόπτωση, την ξηρότητα κόλπου και τη θεραπεία με laser.",
-          depth=d, body=body, active="arthra", jsonld=[crumb_ld]))
+    write("arthra/index.html", shell(path="arthra/", title="Ιατρικά άρθρα γυναικολογίας | LVRI Athens",
+          desc="Άρθρα του Dr. Κωνσταντίνου Μυρίλλα για την ακράτεια ούρων, την πρόπτωση μήτρας, την ξηρότητα κόλπου, την αιδοιοπλαστική και τη θεραπεία με laser.",
+          depth=d, body=body, active="arthra", image=HUB_IMAGES.get('arthra/'), jsonld=[crumb_ld]))
     register("arthra/", prio="0.7", freq="weekly")
     index("arthra/", title="Άρθρα", desc=f"{len(ARTICLES)} κείμενα του ιατρείου", kind="page",
           kw="αρθρα blog κειμενα")
@@ -653,8 +772,7 @@ def build_mylist_page():
 </div></section>{U.cta_band(d)}</main>'''
     write("i-lista-mou/index.html", shell(path="i-lista-mou/", title="Η λίστα μου | LVRI Athens",
           desc="Οι θεραπείες, παθήσεις και άρθρα που κρατήσατε. Αποθηκεύονται τοπικά στη συσκευή σας.",
-          depth=d, body=body, active="", jsonld=[crumb_ld]))
-    register("i-lista-mou/", prio="0.3")
+          depth=d, body=body, active="", jsonld=[crumb_ld], noindex=True))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -793,8 +911,7 @@ q.addEventListener('input',run);run();}})();
     write("vinteo/index.html", shell(
         path="vinteo/", title="Βίντεο: επεμβάσεις, συνεντεύξεις και ενημέρωση | LVRI Athens",
         desc=f"{total} βίντεο του Dr. Κωνσταντίνου Μυρίλλα: καταγραφές λαπαροσκοπικών και "
-             f"υστεροσκοπικών επεμβάσεων, τηλεοπτικές συνεντεύξεις, ομιλίες και ενημέρωση "
-             f"για παθήσεις και θεραπείες.",
+             f"υστεροσκοπικών επεμβάσεων, τηλεοπτικές συνεντεύξεις και ενημέρωση για θεραπείες.",
         depth=d, body=body, active="vinteo",
         jsonld=[crumb_ld,
                 {"@context": "https://schema.org", "@type": "ItemList",
@@ -852,8 +969,8 @@ def build_clinic():
 </div></section>
 {faq_html}
 {U.cta_band(d)}</main>'''
-    write("i-kliniki/index.html", shell(path="i-kliniki/", title="Η κλινική | LVRI Athens",
-          desc=C.meta_desc("h-kliniki", "Το LVRI Athens στον Βύρωνα: κοσμητική γυναικολογία και επανορθωτική χειρουργική πυέλου με laser."),
+    write("i-kliniki/index.html", shell(path="i-kliniki/", title="Η κλινική: κοσμητική γυναικολογία στον Βύρωνα | LVRI Athens",
+          desc=html.escape(f"Το LVRI Athens λειτουργεί από το {SITE['founded']} στον Βύρωνα: κέντρο κοσμητικής γυναικολογίας και επανορθωτικής χειρουργικής πυέλου με laser, με τεχνικές LVR® και DLV®.", quote=True),
           depth=d, body=body, active="kliniki",
           jsonld=[crumb_ld] + ([faq_ld] if faq_ld else [])))
     register("i-kliniki/", prio="0.8")
@@ -861,7 +978,7 @@ def build_clinic():
           kw="κλινικη ιατρειο lvri athens βυρωνας")
 
 
-def build_doctor(slug, legacy, name, role, photo, blurb):
+def build_doctor(slug, legacy, name, role, photo, blurb, *, title=None, desc=None, profile=False):
     d = 1
     body_html, faq_title, faq_pairs = C.prose(legacy, d)
     body_html = anchor_headings(body_html)
@@ -885,9 +1002,15 @@ def build_doctor(slug, legacy, name, role, photo, blurb):
       <button class="btn btn--cta btn--sm" type="button" data-open="book">Ζητήστε ραντεβού</button></div>
   </aside>
 </div>{faq_html}{U.cta_band(d)}</main>'''
-    write(f"{slug}/index.html", shell(path=f"{slug}/", title=C.seo_title(name),
-          desc=C.meta_desc(legacy, blurb), depth=d, body=body, active="", jsonld=[crumb_ld] + ([faq_ld] if faq_ld else [])))
-    register(f"{slug}/", prio="0.7")
+    extra = [{"@context": "https://schema.org", "@type": "ProfilePage",
+              "@id": f"{SITE['domain']}/{slug}/#webpage", "url": f"{SITE['domain']}/{slug}/",
+              "name": title or name, "inLanguage": "el",
+              "mainEntity": {"@id": SITE["domain"] + "/dr-mirillas/#person"}}] if profile else []
+    write(f"{slug}/index.html", shell(path=f"{slug}/", title=title or C.seo_title(name),
+          desc=html.escape(desc, quote=True) if desc else C.meta_desc(legacy, blurb),
+          depth=d, body=body, active="", image=photo, preload=None,
+          jsonld=[crumb_ld] + extra + ([faq_ld] if faq_ld else [])))
+    register(f"{slug}/", prio="0.8" if profile else "0.6", image=photo)
     index(f"{slug}/", title=name, desc=role, kind="page", kw=name + " " + role + " " + blurb)
 
 
@@ -1057,9 +1180,11 @@ def footer_en(depth):
 </footer>'''
 
 
-def en_shell(*, path, title, desc, depth, body, active=""):
+def en_shell(*, path, title, desc, depth, body, active="", jsonld=None, **head_kw):
+    if head_kw.get("image") and "preload" not in head_kw:
+        head_kw["preload"] = head_kw["image"].rsplit(".", 1)[0]
     head = U.head(title=title, desc=desc, depth=depth, canonical=path, lang="en",
-                  jsonld=[base_graph()])
+                  jsonld=[base_graph()] + list(jsonld or []), **head_kw)
     return head + topbar_en(depth, active) + body + footer_en(depth) + \
         U.tail(depth, extra_js=page_scripts(depth), lang="en")
 
@@ -1120,9 +1245,9 @@ and conditions in English; the full site is in
   <div class="sec__head"><p class="eyebrow">In English</p><h2>Procedures & conditions</h2></div>
   <div class="grid-3">{tiles}</div>
 </div></section></main>'''
-    write("en/index.html", en_shell(path="en/", title="LVRI Athens: Laser Vaginal Rejuvenation Institute",
-          desc=C.meta_desc("en/home", "Cosmetic gynaecology and pelvic floor reconstruction with CO2 laser in Athens."),
-          depth=d, body=body, active="en/"))
+    write("en/index.html", en_shell(path="en/", title=EN_SEO["home"]["title"],
+          desc=html.escape(EN_SEO["home"]["desc"], quote=True),
+          depth=d, body=body, active="en/", image="clinic-team.jpg"))
     register("en/", prio="0.7")
 
 
@@ -1130,7 +1255,14 @@ def build_en_page(new, legacy, title):
     d = 2
     body_html, faq_title, faq_pairs = C.prose(legacy, d)
     body_html = anchor_headings(body_html)
-    faq_html, _ld = U.faq_block(faq_title, faq_pairs)
+    faq_html, faq_ld = U.faq_block(faq_title, faq_pairs)
+    seo = EN_SEO.get(new, {})
+    page_title = seo.get("title") or f"{title} | LVRI Athens"
+    page_desc = (html.escape(seo["desc"], quote=True) if seo.get("desc")
+                 else C.meta_desc(legacy, title + " at LVRI Athens."))
+    crumb_ld = {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "LVRI Athens", "item": SITE["domain"] + "/en/"},
+        {"@type": "ListItem", "position": 2, "name": title, "item": f"{SITE['domain']}/en/{new}/"}]}
     body = f'''
 {U.hero_photo(EN_IMAGES.get(new), title, 2)}
   <div class="wrap wrap--narrow">
@@ -1142,14 +1274,18 @@ def build_en_page(new, legacy, title):
 <main id="main"><div class="wrap doc">
   <article class="doc__main prose">{body_html}</article>
   <aside class="doc__aside">{build_toc(body_html)}
+    {U.doctor_panel(d, "en")}
     <div class="panel"><h3>Request an appointment</h3>
       <p>We reply the same or next working day.</p>
       <button class="btn btn--cta btn--sm" type="button" data-open="book">Book</button></div>
   </aside>
 </div>{faq_html}</main>'''
-    write(f"en/{new}/index.html", en_shell(path=f"en/{new}/", title=f"{title} | LVRI Athens",
-          desc=C.meta_desc(legacy, title + " at LVRI Athens."), depth=d, body=body, active=f"en/{new}/"))
-    register(f"en/{new}/", prio="0.6")
+    write(f"en/{new}/index.html", en_shell(path=f"en/{new}/", title=page_title,
+          desc=page_desc, depth=d, body=body, active=f"en/{new}/", image=EN_IMAGES.get(new),
+          jsonld=[crumb_ld, webpage_ld(f"en/{new}/", page_title, page_desc,
+                                       image=EN_IMAGES.get(new), lang="en")]
+                 + ([faq_ld] if faq_ld else [])))
+    register(f"en/{new}/", prio="0.6", image=EN_IMAGES.get(new))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1175,7 +1311,7 @@ def build_404():
   {U.row(rid="r-404c", title="Παθήσεις", cards=[U.condition_card(c, d) for c in CONDITIONS])}
 </main>'''
     write("404.html", shell(path="", title="Δεν βρέθηκε | LVRI Athens",
-          desc="Η σελίδα δεν βρέθηκε.", depth=d, body=body, active=""))
+          desc="Η σελίδα δεν βρέθηκε.", depth=d, body=body, active="", noindex=True))
 
 
 def _redirect_pairs():
@@ -1195,12 +1331,23 @@ def _redirect_pairs():
 
 def build_index_files():
     write("search-index.json", json.dumps(SEARCH, ensure_ascii=False, separators=(",", ":")))
+    def extras(u, img):
+        x = ""
+        pair = C.HREFLANG.get(u)
+        if pair:
+            x += "".join(f'<xhtml:link rel="alternate" hreflang="{l}" href="{SITE["domain"]}/{h}"/>'
+                         for l, h in (("el", pair[0]), ("en", pair[1]), ("x-default", pair[0])))
+        if img:
+            x += f"<image:image><image:loc>{SITE['domain']}/assets/img/{img}</image:loc></image:image>"
+        return x
     urls = "".join(
         f"  <url><loc>{SITE['domain']}/{u}</loc><lastmod>{TODAY}</lastmod>"
-        f"<changefreq>{f}</changefreq><priority>{p}</priority></url>\n"
-        for u, p, f in PAGES)
+        f"<changefreq>{f}</changefreq><priority>{p}</priority>{extras(u, img)}</url>\n"
+        for u, p, f, img in PAGES)
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n'
-          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls + "</urlset>\n")
+          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+          'xmlns:xhtml="http://www.w3.org/1999/xhtml" '
+          'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n' + urls + "</urlset>\n")
     write("robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {SITE['domain']}/sitemap.xml\n")
 
     # Vercel: same conventions as version 1: 301s, immutable asset caching, security headers.
@@ -1285,11 +1432,9 @@ def main():
     build_kegel_page()
     build_mylist_page()
     build_clinic()
-    build_doctor("dr-mirillas", "dr-k-mirillas", "Dr. Κωνσταντίνος Μυρίλλας",
-                 "Μαιευτήρας χειρουργός γυναικολόγος",
-                 "dr-myrillas.jpg",
-                 "Ιδρυτής του LVRI Athens. Διευθύνει από το 2013 το τμήμα πλαστικής κόλπου και "
-                 "επανορθωτικής χειρουργικής πυέλου με laser στο Μαιευτήριο ΡΕΑ.")
+    build_doctor("dr-mirillas", "dr-k-mirillas", DOCTOR["name"], DOCTOR["role"],
+                 "dr-myrillas.jpg", DOCTOR["blurb"],
+                 title=DOCTOR["seo_title"], desc=DOCTOR["seo_desc"], profile=True)
     build_doctor("dr-matlock", "david-l-matlock", "Dr. David L. Matlock",
                  "Δημιουργός των LVR® και DLV®",
                  "dr-matlock.jpg",
