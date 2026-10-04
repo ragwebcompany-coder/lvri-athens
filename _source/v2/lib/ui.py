@@ -16,7 +16,7 @@ from content import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS, RED_FL
                      ARTICLE_IMAGES, HREFLANG, DOCTOR)
 from content import ROOT as _C_ROOT
 
-ASSET_V = "5"
+ASSET_V = "6"
 
 # ── icons ────────────────────────────────────────────────────────────────────
 I = {

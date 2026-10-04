@@ -1096,6 +1096,148 @@ def build_contact():
           kw="επικοινωνια τηλεφωνο διευθυνση χαρτης ωραριο ραντεβου")
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# LANDING PAGE (διαφημίσεις)
+# ══════════════════════════════════════════════════════════════════════════════
+# Το βίντεο της landing page. Κενό = εμφανίζεται το πλαίσιο αναμονής.
+# Όταν έρθει: όνομα αρχείου .mp4 μέσα στο assets/video/ ή ένα YouTube ID.
+LANDING_VIDEO = ""
+
+
+def landing_video(depth):
+    r = rel(depth)
+    v = LANDING_VIDEO
+    if v.endswith(".mp4"):
+        return (f'<video controls playsinline preload="metadata" '
+                f'poster="{r}assets/img/clinic-team.jpg" aria-label="Παρουσίαση LVRI Athens">'
+                f'<source src="{r}assets/video/{v}" type="video/mp4"></video>')
+    if v:
+        return (f'<iframe src="https://www.youtube-nocookie.com/embed/{v}?rel=0" loading="lazy" '
+                f'title="Παρουσίαση LVRI Athens" allow="encrypted-media; picture-in-picture; fullscreen" '
+                f'allowfullscreen></iframe>')
+    return (f'<div class="lp-vsl__empty"><span class="lp-vsl__play" aria-hidden="true">{U.I["play"]}</span>'
+            f'<span>Το βίντεο ανεβαίνει σύντομα</span></div>')
+
+
+def build_landing():
+    d = 1
+    r = rel(d)
+    cta = f'<button class="btn btn--red btn--lg lp-btn" type="button" data-open="book">Κλείστε ραντεβού{U.I["right"]}</button>'
+    symptoms = "".join(
+        f'<li class="tile"><span class="tile__n">{html.escape(c["title"])}</span>'
+        f'<p class="lp-quote">«{html.escape(c["plain"])}»</p></li>' for c in CONDITIONS)
+    treats = "".join(
+        f'<li class="lp-treat"><div><h3>{html.escape(t["title"])}</h3>'
+        f'<p>{html.escape(t["lead"])}</p></div>{U.lvl_badge(t["invasive"])}</li>' for t in TREATMENTS)
+    faqs = [
+        ("Πώς κλείνω ραντεβού;",
+         f"<p>Τηλεφωνικά στο {SITE['phone']} ή με αίτημα από τη φόρμα ραντεβού αυτής της σελίδας. "
+         "Απαντάμε την ίδια ή την επόμενη εργάσιμη.</p>"),
+        ("Δεσμεύομαι σε κάτι με το πρώτο ραντεβού;",
+         "<p>Όχι. Μια εκτίμηση δεν δεσμεύει σε τίποτα. Ο γιατρός σάς εξετάζει, σας εξηγεί τις "
+         "επιλογές και αποφασίζετε εσείς.</p>"),
+        ("Χρειάζεται πάντα χειρουργείο;",
+         "<p>Όχι. Η αναζωογόνηση κόλπου με laser γίνεται στο ιατρείο, σε 2 έως 3 ανώδυνες "
+         "συνεδρίες 15 λεπτών, χωρίς ανάρρωση. Χειρουργική αντιμετώπιση προτείνεται μόνο όταν "
+         "το απαιτεί το περιστατικό.</p>"),
+        ("Πού γίνονται οι επεμβάσεις;",
+         "<p>Τα ραντεβού, οι εξετάσεις και οι θεραπείες laser γίνονται στο ιατρείο στον Βύρωνα. "
+         "Οι χειρουργικές επεμβάσεις γίνονται στο Μαιευτήριο ΡΕΑ, όπου ο Dr. Μυρίλλας διευθύνει "
+         "από το 2013 το τμήμα πλαστικής κόλπου και επανορθωτικής χειρουργικής πυέλου με laser.</p>"),
+        ("Πού βρίσκεται το ιατρείο και ποιες ώρες λειτουργεί;",
+         f"<p>{SITE['address']}, Τ.Κ. {SITE['postcode']}. Δευτέρα έως Παρασκευή 09:00 έως 17:00 "
+         "και Σάββατο 09:00 έως 15:00.</p>"),
+    ]
+    faq_html, faq_ld = U.faq_block("Συχνές ερωτήσεις", faqs)
+    header = f'''<header class="tb tb--lp" id="topbar" data-at-top="1">
+  <div class="tb__in">
+    {U.wordmark(d)}
+    <div class="tb__right">
+      <a class="tb__call" href="tel:{SITE['phone_href']}">{U.I['phone']}<span>{SITE['phone']}</span></a>
+      <button class="btn btn--cta tb__cta" type="button" data-open="book">Ραντεβού</button>
+    </div>
+  </div>
+</header>'''
+    body = header + f'''
+<main id="main" class="lp">
+  <section class="lp-hero">
+    <div class="wrap lp-hero__in">
+      <p class="eyebrow">Κοσμητική γυναικολογία με laser · Αθήνα</p>
+      <h1>Ακράτεια, ξηρότητα, χαλάρωση κόλπου. <span>Υπάρχει λύση με laser.</span></h1>
+      <p class="lp-promise">Dr. Κωνσταντίνος Μυρίλλας · στον Βύρωνα από το {SITE['founded']}</p>
+      <div class="lp-vsl" id="lp-video">{landing_video(d)}</div>
+      <div class="lp-cta">
+        {cta}
+        <small>Απαντάμε την ίδια ή την επόμενη εργάσιμη. Ή καλέστε στο
+          <a href="tel:{SITE['phone_href']}">{SITE['phone']}</a>.</small>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec sec--edge rv">
+    <div class="wrap">
+      <div class="sec__head"><p class="eyebrow">Σας ακούγεται γνώριμο;</p>
+        <h2>Δεν είναι «κάτι που απλώς το υπομένεις»</h2></div>
+      <ul class="grid-3 lp-list">{symptoms}</ul>
+    </div>
+  </section>
+
+  <section class="sec sec--edge lp-night rv">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Ένα ιατρείο, μία ειδικότητα</p>
+        <h2>{html.escape(DOCTOR['name'])}</h2>
+        <p class="lede">{html.escape(DOCTOR['role'])}. {html.escape(DOCTOR['blurb'])}</p>
+        <ul class="figures" style="margin:2rem 0">
+          <li><b>{SITE['founded']}</b><span>Ιατρείο στον Βύρωνα</span></li>
+          <li><b>2013</b><span>Τμήμα στο ΡΕΑ</span></li>
+          <li><b>{len(TREATMENTS)}</b><span>Θεραπείες</span></li>
+        </ul>
+        <div class="lp-deal">
+          <div><span class="tile__n">Στο ιατρείο</span><p>{html.escape(SITE['venues'][0][2])}</p></div>
+          <div><span class="tile__n">Στο Μαιευτήριο ΡΕΑ</span><p>Χειρουργικές επεμβάσεις, όταν τις απαιτεί το περιστατικό.</p></div>
+        </div>
+        {cta}
+      </div>
+      <figure class="lp-doc">{U.pic("dr-myrillas.jpg", DOCTOR['name'], 500, 700, d)}</figure>
+    </div>
+  </section>
+
+  <section class="sec sec--edge rv">
+    <div class="wrap wrap--narrow">
+      <p class="eyebrow">Θεραπείες</p>
+      <h2>Από μια συνεδρία στο ιατρείο μέχρι πλήρη ανάπλαση</h2>
+      <ul class="lp-treats">{treats}</ul>
+    </div>
+  </section>
+
+  {faq_html}
+
+  {U.cta_band(d)}
+</main>
+<footer class="ft lp-ft">
+  <div class="wrap ft__base">
+    <p>© {TODAY[:4]} {SITE['name']} · {SITE['address']}, {SITE['postcode']} ·
+      <a href="tel:{SITE['phone_href']}">{SITE['phone']}</a></p>
+    <p><a href="{r}">Ιστότοπος του ιατρείου</a> · <a href="{r}oroi-chrisis/">Όροι χρήσης & απόρρητο</a></p>
+  </div>
+  <p class="ft__disclaimer">Το περιεχόμενο είναι ενημερωτικό και δεν υποκαθιστά την ιατρική
+    εξέταση. Κάθε περιστατικό αξιολογείται ξεχωριστά και τα αποτελέσματα διαφέρουν.</p>
+  {U.credit("el")}
+</footer>
+<div class="lp-bar">
+  <a class="btn btn--ghost" href="tel:{SITE['phone_href']}">{U.I['phone']}Κλήση</a>
+  <button class="btn btn--red" type="button" data-open="book">Κλείστε ραντεβού</button>
+</div>'''
+    title = "Λύσεις με laser για ακράτεια, ξηρότητα, χαλάρωση | LVRI Athens"
+    desc = ("Ακράτεια ούρων, ξηρότητα και χαλάρωση κόλπου: θεραπείες με laser από τον "
+            f"Dr. Κωνσταντίνο Μυρίλλα στον Βύρωνα. Κλείστε ραντεβού στο {SITE['phone']}.")
+    head = U.head(title=title, desc=desc, depth=d, canonical="landingpage/",
+                  jsonld=[base_graph(), faq_ld], body_class="is-lp", noindex=True)
+    # Σελίδα διαφημίσεων: χωρίς μενού, εκτός sitemap και αναζήτησης.
+    write("landingpage/index.html", head + body + U.tail(d, extra_js=page_scripts(d)))
+
+
 def build_terms():
     d = 1
     body_html, _t, _p = C.prose("oroi-chrisis-politiki-aporritou", d, drop_faq=False)
@@ -1441,6 +1583,7 @@ def main():
                  "Ο Αμερικανός γυναικολόγος που ανέπτυξε τις τεχνικές Laser Vaginal Rejuvenation® "
                  "και Designer Laser Vaginoplasty®.")
     build_contact()
+    build_landing()
     build_terms()
     build_en_home()
     for new, legacy, title in EN_PAGES:
