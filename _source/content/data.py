@@ -8,7 +8,7 @@ Every clinical figure here is taken from the clinic's own published copy in
 SITE = {
     "name": "LVRI Athens",
     "legal": "Laser Vaginal Rejuvenation Institute of Athens",
-    "domain": "https://lvriathens.com",
+    "domain": "https://lvriathens.gr",
     "phone": "210 7609109",
     "phone_href": "+302107609109",
     "email": "info@lvriathens.com",

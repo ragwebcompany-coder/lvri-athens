@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://lvriathens.com/sitemap.xml
+Sitemap: https://lvriathens.gr/sitemap.xml
