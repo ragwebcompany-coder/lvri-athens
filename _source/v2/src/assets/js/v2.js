@@ -643,7 +643,7 @@ D.addEventListener("click", function (e) {
       f.date.value ? "Προτίμηση ημερομηνίας: " + f.date.value + (f.time.value ? " " + f.time.value : "") : "",
       "", f.note.value.trim()
     ].filter(Boolean).join("\n");
-    var href = "mailto:" + "info@lvriathens.com" +
+    var href = "mailto:" + "konstanmyr@gmail.com" +
       "?subject=" + encodeURIComponent("Αίτημα ραντεβού: " + f.name.value.trim()) +
       "&body=" + encodeURIComponent(lines);
     location.href = href;

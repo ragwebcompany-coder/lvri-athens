@@ -11,7 +11,7 @@ SITE = {
     "domain": "https://lvriathens.gr",
     "phone": "210 7609109",
     "phone_href": "+302107609109",
-    "email": "info@lvriathens.com",
+    "email": "konstanmyr@gmail.com",
     "address": "Καραολή & Δημητρίου 41, Βύρωνας",
     "address_en": "Karaoli & Dimitriou 41, Vyronas, Athens",
     "postcode": "162 31",
