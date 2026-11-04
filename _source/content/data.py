@@ -25,6 +25,9 @@ SITE = {
     "locality_en": "Vyronas",
     "region": "Αττική",
     "founded": "2008",
+    # Ημερομηνία τελευταίου ιατρικού ελέγχου του περιεχομένου. Αλλάζει μόνο όταν
+    # ο γιατρός ξαναδιαβάσει τα κείμενα: μπαίνει στο sitemap (lastmod) και στο schema.
+    "reviewed": "2026-11-04",
     "hours": [("Δευτέρα έως Παρασκευή", "09:00 έως 17:00"),
               ("Σάββατο", "09:00 έως 15:00"),
               ("Κυριακή", "Κλειστά")],
@@ -607,6 +610,14 @@ DOCTOR = {
     "knows_about": ["Κολποπλαστική με laser", "Αιδοιοπλαστική", "Αναζωογόνηση κόλπου",
                     "Χειρουργική πυελικού εδάφους", "Ακράτεια ούρων", "Πρόπτωση μήτρας",
                     "Λαπαροσκοπική χειρουργική"],
+    # Ο ίδιος γιατρός σε άλλα σημεία του διαδικτύου. Ενώνει το lvriathens.gr με το
+    # προσωπικό του site, ώστε Google και AI να τα αναγνωρίζουν ως το ίδιο πρόσωπο.
+    "same_as": ["https://kmyrillas.gr/",
+                "https://kmyrillas.gr/gynaikologos-dr-k-myrillas/",
+                "https://www.facebook.com/KonstantinosMyrillas",
+                "https://twitter.com/KMyrillas",
+                "https://www.instagram.com/dr_mirillas/",
+                "https://www.youtube.com/@KMyrillas"],
 }
 
 # ── Article SEO ──────────────────────────────────────────────────────────────

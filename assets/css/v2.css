@@ -868,3 +868,7 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
   .is-lp .totop{display:none}
   .is-lp .ck{bottom:84px}
 }
+
+/* Ιατρικός έλεγχος κάτω από τον υπότιτλο σε θεραπείες και παθήσεις */
+.reviewed{margin:.6rem 0 0;font-size:.85rem;color:#d4d4d4}
+.reviewed a{color:inherit;text-decoration:underline;text-underline-offset:2px}

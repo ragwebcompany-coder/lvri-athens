@@ -33,6 +33,8 @@ SEARCH = []         # search index rows
 
 # ── output helpers ───────────────────────────────────────────────────────────
 def write(path, markup):
+    if path.endswith(".html"):      # παλιά κείμενα γράφουν το site ως lvriathens.com (όχι τα email)
+        markup = re.sub(r"(?<![@\w.])lvriathens\.com\b", "lvriathens.gr", markup)
     full = os.path.join(OUT, path)
     os.makedirs(os.path.dirname(full), exist_ok=True)
     with open(full, "w", encoding="utf-8") as f:
@@ -100,7 +102,7 @@ def doctor_ld():
             "parentOrganization": {"@id": SITE["domain"] + "/#clinic"},
             "address": address_ld(),
             "geo": {"@type": "GeoCoordinates", "latitude": SITE["lat"], "longitude": SITE["lng"]},
-            "sameAs": [YOUTUBE_CHANNEL]}
+            "sameAs": DOCTOR["same_as"]}
 
 
 def doctor_person_ld():
@@ -114,7 +116,7 @@ def doctor_person_ld():
             "alumniOf": [{"@type": "CollegeOrUniversity", "name": n} for n in DOCTOR["alumni"]],
             "memberOf": [{"@type": "Organization", "name": n} for n in DOCTOR["member_of"]],
             "knowsAbout": DOCTOR["knows_about"], "knowsLanguage": ["el", "en"],
-            "sameAs": [YOUTUBE_CHANNEL]}
+            "sameAs": DOCTOR["same_as"]}
 
 
 def webpage_ld(path, title, desc, *, about=None, image=None, lang="el"):
@@ -125,13 +127,26 @@ def webpage_ld(path, title, desc, *, about=None, image=None, lang="el"):
           "isPartOf": {"@id": SITE["domain"] + "/#website"},
           "author": {"@id": SITE["domain"] + "/dr-mirillas/#person"},
           "publisher": {"@id": SITE["domain"] + "/#clinic"},
-          "audience": {"@type": "MedicalAudience", "audienceType": "Patient"}}
+          "audience": {"@type": "MedicalAudience", "audienceType": "Patient"},
+          "lastReviewed": SITE["reviewed"], "dateModified": SITE["reviewed"],
+          "reviewedBy": {"@id": SITE["domain"] + "/dr-mirillas/#person"}}
     if about:
         ld["about"] = about
     if image:
         ld["primaryImageOfPage"] = {"@type": "ImageObject",
                                     "url": f"{SITE['domain']}/assets/img/{image}"}
     return ld
+
+
+GR_MONTHS = ["Ιανουαρίου", "Φεβρουαρίου", "Μαρτίου", "Απριλίου", "Μαΐου", "Ιουνίου", "Ιουλίου",
+             "Αυγούστου", "Σεπτεμβρίου", "Οκτωβρίου", "Νοεμβρίου", "Δεκεμβρίου"]
+
+
+def reviewed_line(depth):
+    """Ορατή υπογραφή ιατρικού ελέγχου: ποιος και πότε (E-E-A-T, παραθέσεις από AI)."""
+    y, m, d = map(int, SITE["reviewed"].split("-"))
+    return (f'<p class="reviewed">Ιατρικός έλεγχος: <a href="{rel(depth)}dr-mirillas/">{html.escape(DOCTOR["name"])}</a>, '
+            f'{html.escape(DOCTOR["role"].lower())} · <time datetime="{SITE["reviewed"]}">{d} {GR_MONTHS[m - 1]} {y}</time></p>')
 
 
 def site_ld():
@@ -346,6 +361,7 @@ def build_treatment(t):
     <p class="hero__badge"><span class="k">{html.escape(t['short'])}</span>{U.lvl_badge(t['invasive'])}</p>
     <h1>{html.escape(t.get('h1') or t['title'])}</h1>
     <p class="lede">{html.escape(t['lead'])}</p>
+    {reviewed_line(d)}
     <ul class="hero__meta">
       <li>{U.I['pin']}{html.escape(m['setting'])}</li>
       <li>{U.I['clock']}{html.escape(m['duration'])}</li>
@@ -465,6 +481,7 @@ def build_condition(c):
     <p class="eyebrow">Πάθηση</p>
     <h1>{html.escape(c.get('h1') or c['title'])}</h1>
     <p class="lede">{html.escape(c['lead'])}</p>
+    {reviewed_line(d)}
     <div class="hero__acts">
       <button class="btn btn--cta btn--lg" type="button" data-open="scanner">Σαρωτής συμπτωμάτων</button>
       <button class="btn btn--glass btn--lg" type="button" data-open="book" data-topic="{html.escape(c['title'])}">Ζητήστε ραντεβού</button>
@@ -1048,7 +1065,7 @@ def build_contact():
 <section class="page-hero">
   <div class="wrap">{crumb}
     <p class="eyebrow">Επικοινωνία</p>
-    <h1>Ελάτε να τα πούμε</h1>
+    <h1>Επικοινωνία: LVRI Athens στον Βύρωνα</h1>
     <p class="lede">Ένα τηλέφωνο, ένα email, ή η φόρμα. Ό,τι σας βολεύει.</p>
     <div class="hero__acts">
       <a class="btn btn--cta btn--lg" href="tel:{SITE['phone_href']}">{U.I['phone']}{SITE['phone']}</a>
@@ -1483,14 +1500,22 @@ def build_index_files():
             x += f"<image:image><image:loc>{SITE['domain']}/assets/img/{img}</image:loc></image:image>"
         return x
     urls = "".join(
-        f"  <url><loc>{SITE['domain']}/{u}</loc><lastmod>{TODAY}</lastmod>"
+        f"  <url><loc>{SITE['domain']}/{u}</loc><lastmod>{SITE['reviewed']}</lastmod>"
         f"<changefreq>{f}</changefreq><priority>{p}</priority>{extras(u, img)}</url>\n"
         for u, p, f, img in PAGES)
     write("sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?>\n'
           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
           'xmlns:xhtml="http://www.w3.org/1999/xhtml" '
           'xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n' + urls + "</urlset>\n")
-    write("robots.txt", f"User-agent: *\nAllow: /\n\nSitemap: {SITE['domain']}/sitemap.xml\n")
+    # Ρητή άδεια στα crawlers των AI (αναζήτηση και εκπαίδευση): το site θέλει να παρατίθεται.
+    ai_bots = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot", "Claude-User",
+               "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot-Extended", "Bingbot",
+               "CCBot", "meta-externalagent", "DuckAssistBot", "MistralAI-User"]
+    write("robots.txt", "User-agent: *\nAllow: /\n\n"
+          + "".join(f"User-agent: {b}\nAllow: /\n\n" for b in ai_bots)
+          + f"Sitemap: {SITE['domain']}/sitemap.xml\n")
+    build_llms()
+    write(f"{INDEXNOW_KEY}.txt", INDEXNOW_KEY)
 
     # Vercel: same conventions as version 1: 301s, immutable asset caching, security headers.
     cfg = {
@@ -1512,6 +1537,76 @@ def build_index_files():
     write("vercel.json", json.dumps(cfg, indent=2, ensure_ascii=False) + "\n")
     write(".vercelignore", "# Build sources, not part of the deployed site.\n"
                            "_source/\n.htaccess\n_redirects\n")
+
+
+INDEXNOW_KEY = "b7c41e9a2f6d4e8a9c3b5d1f0e7a6c42"   # IndexNow (Bing, Yandex): ειδοποίηση για νέες σελίδες
+
+
+def _txt(s):
+    return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", s or ""))).strip()
+
+
+def build_llms():
+    """llms.txt (σύντομος οδηγός) και llms-full.txt (όλα τα βασικά στοιχεία) για ChatGPT,
+    Claude, Perplexity κ.ά. Ίδια δεδομένα με τις σελίδες, σε απλό Markdown."""
+    D = SITE["domain"]
+    hours = "; ".join(f"{a}: {b}" for a, b in SITE["hours"])
+    head = f"""# {SITE['name']} ({SITE['legal']})
+
+> {SITE['about']}
+
+- Διεύθυνση: {SITE['address']}, {SITE['postcode']}, {SITE['region']}
+- Τηλέφωνο: {SITE['phone']} (+{SITE['phone_href'].lstrip('+')})
+- Email: {SITE['email']}
+- Ωράριο: {hours}
+- Χάρτης: {SITE['map_full']}
+- Επεμβάσεις: Μαιευτήριο ΡΕΑ, όπου ο Dr. Μυρίλλας διευθύνει από το 2013 το τμήμα πλαστικής κόλπου και επανορθωτικής χειρουργικής πυέλου με laser
+- Εξυπηρετούμενες περιοχές: {', '.join(SITE['areas'])}, όλη η Αττική και η υπόλοιπη Ελλάδα
+- Γλώσσες: ελληνικά, αγγλικά
+- Υπεύθυνος ιατρός: {DOCTOR['name']}, {DOCTOR['role'].lower()} ({D}/dr-mirillas/). Προσωπικό site: https://kmyrillas.gr/
+- Τελευταίος ιατρικός έλεγχος περιεχομένου: {SITE['reviewed']}
+"""
+    short = [head, "\n## Θεραπείες\n"]
+    short += [f"- [{t['title']}]({D}/therapeies/{t['slug']}/): {t['lead']}" for t in TREATMENTS]
+    short += ["\n## Παθήσεις\n"]
+    short += [f"- [{c['title']}]({D}/pathiseis/{c['slug']}/): {c['lead']}" for c in CONDITIONS]
+    short += ["\n## Ο γιατρός και η κλινική\n",
+              f"- [{DOCTOR['name']}]({D}/dr-mirillas/): {DOCTOR['blurb']}",
+              f"- [Dr. David L. Matlock]({D}/dr-matlock/): δημιουργός των τεχνικών Laser Vaginal Rejuvenation® και Designer Laser Vaginoplasty®",
+              f"- [Η κλινική]({D}/i-kliniki/)",
+              f"- [Επικοινωνία και ραντεβού]({D}/epikoinonia/)",
+              "\n## Χρήσιμα\n",
+              f"- [Οδηγός συμπτωμάτων]({D}/odigos-symptomaton/)",
+              f"- [Ασκήσεις Kegel]({D}/askiseis-kegel/)",
+              f"- [Βίντεο]({D}/vinteo/)",
+              f"- [Άρθρα]({D}/arthra/)",
+              f"- [English]({D}/en/)",
+              "\n## Optional\n",
+              f"- [Πλήρες κείμενο για AI]({D}/llms-full.txt): θεραπείες, παθήσεις και συχνές ερωτήσεις αναλυτικά"]
+    write("llms.txt", "\n".join(short) + "\n")
+
+    full = [head]
+    for t in TREATMENTS:
+        m = t["matrix"]
+        full += [f"\n## {t['title']}\n", f"URL: {D}/therapeies/{t['slug']}/", "", t["lead"], "",
+                 f"- Πού γίνεται: {m['setting']}", f"- Αναισθησία: {m['anesthesia']}",
+                 f"- Συνεδρίες: {m['sessions']}", f"- Διάρκεια: {m['duration']}",
+                 f"- Ανάρρωση: {m['recovery']}", f"- Πόνος: {m['pain']}",
+                 f"- Αντιμετωπίζει: {', '.join(t['treats'])}"]
+        _b, _ft, pairs = C.prose(t["legacy"], 2)
+        for q, a in merged_faq(pairs, t):
+            full += ["", f"**{_txt(q)}**", _txt(a)]
+    for c in CONDITIONS:
+        full += [f"\n## {c['title']}\n", f"URL: {D}/pathiseis/{c['slug']}/", "", c["lead"], "",
+                 f"Με απλά λόγια: {c['plain']}", "",
+                 "Θεραπείες: " + ", ".join(TREATS[s]["title"] for s in c["treatments"] if s in TREATS)]
+        _b, _ft, pairs = C.prose(c["legacy"], 2)
+        for q, a in merged_faq(pairs, c):
+            full += ["", f"**{_txt(q)}**", _txt(a)]
+    full += ["\n## Συχνές ερωτήσεις για το LVRI Athens\n"]
+    for q, a in HOME_FAQ:
+        full += [f"**{_txt(q)}**", _txt(a), ""]
+    write("llms-full.txt", "\n".join(full) + "\n")
 
 
 def build_redirects():
