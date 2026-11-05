@@ -881,3 +881,10 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
 .quick dt{color:var(--dim);font-size:.9rem;font-weight:600}
 .quick dd{margin:0;font-size:.95rem}
 @media (max-width:560px){.quick dl>div{grid-template-columns:1fr;gap:.1rem}}
+
+/* Σύγκριση στη σελίδα «Σύσφιξη κόλπου» */
+.sx-wrap{overflow-x:auto;margin:1rem 0 1.5rem}
+.sx-table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:520px}
+.sx-table th,.sx-table td{border-bottom:1px solid var(--line,#333);padding:.7rem .6rem;text-align:left;vertical-align:top}
+.sx-table thead th{color:var(--ink);font-weight:700}
+.sx-table tbody th{color:var(--dim);font-weight:600;width:22%}

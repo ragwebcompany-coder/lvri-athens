@@ -32,7 +32,7 @@ from data import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS,   # noqa:
                   RED_FLAGS, KEGEL, VIDEOS, VIDEO_GROUPS, VIDEO_LIBRARY, TREATMENT_VIDEOS,
                   HOME_VIDEOS, YOUTUBE_CHANNEL, EN_PAGES, MONTHS,
                   ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES,
-                  DOCTOR, ARTICLE_SEO, HOME_FAQ, EN_SEO)
+                  DOCTOR, ARTICLE_SEO, HOME_FAQ, EN_SEO, HEADINGS, CONDITION_EXTRA, COST)
 
 LEGACY = json.load(open(os.path.join(CONTENT, "legacy.json"), encoding="utf-8"))
 TODAY = datetime.date.today().isoformat()

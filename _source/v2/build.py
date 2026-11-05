@@ -17,7 +17,7 @@ from content import (SITE, CONDITIONS, TREATMENTS, ARTICLES, GUIDE_STEPS, RED_FL
                      KEGEL, VIDEO_GROUPS, VIDEO_LIBRARY, HOME_VIDEOS, TREATMENT_VIDEOS,
                      YOUTUBE_CHANNEL, EN_PAGES, CONDS, TREATS, LEGACY, TODAY, rel,
                      ARTICLE_IMAGES, EN_IMAGES, HUB_IMAGES,
-                     DOCTOR, ARTICLE_SEO, HOME_FAQ, EN_SEO)
+                     DOCTOR, ARTICLE_SEO, HOME_FAQ, EN_SEO, HEADINGS, CONDITION_EXTRA, COST)
 
 OUT = os.path.abspath(os.environ.get("LVRI2_OUT") or os.path.join(HERE, "site"))
 SRC = os.path.join(HERE, "src")
@@ -344,14 +344,14 @@ def treatment_quick(t, d):
 
 
 def condition_quick(c, d):
-    n, unit = c["stat"]
     treats = ", ".join(f'<a href="{rel(d)}therapeies/{s}/">{html.escape(TREATS[s]["title"])}</a>'
                        for s in c["treatments"] if s in TREATS)
     rows = [
         ("Τι είναι", html.escape(c["lead"])),
         ("Πώς το περιγράφουν οι ασθενείς", "«" + html.escape(c["plain"]) + "»"),
-        ("Πόσο συχνή", None if n in c["lead"] else html.escape(f"{n} {unit}")),
         ("Γνωστή και ως", html.escape(", ".join(c.get("aka", []))) or None),
+        ("Βαθμοί", html.escape(CONDITION_EXTRA.get(c["slug"], {}).get("grades", "")) or None),
+        ("Διάγνωση", html.escape(CONDITION_EXTRA.get(c["slug"], {}).get("diagnosis", "")) or None),
         ("Θεραπείες", treats or None),
         ("Πού", f"Ραντεβού και εξέταση στο ιατρείο του Βύρωνα, {html.escape(SITE['address'])}, Αθήνα. "
                 f'Τηλ. <a href="tel:{SITE["phone_href"]}">{SITE["phone"]}</a>.'),
@@ -373,7 +373,7 @@ def merged_faq(legacy_pairs, entry):
 def build_treatment(t):
     d, slug = 2, t["slug"]
     body_html, faq_title, faq_pairs = C.prose(t["legacy"], d)
-    body_html = anchor_headings(body_html)
+    body_html = anchor_headings(question_headings(body_html))
     faq_html, faq_ld = U.faq_block(faq_title or f"Συχνές ερωτήσεις: {t['title']}",
                                    merged_faq(faq_pairs, t))
     crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Θεραπείες", "therapeies/"), (t["title"], None)], d)
@@ -392,8 +392,13 @@ def build_treatment(t):
     vids = [by_id[i] for i in TREATMENT_VIDEOS.get(slug, []) if i in by_id]
     vid_cards = [U.video_card(v, d) for v in vids]
     toc = build_toc(body_html)
+    compare = (f'''<div class="panel"><h3>Laser ή χειρουργείο;</h3>
+  <p>Οι δύο τρόποι σύσφιξης κόλπου δίπλα δίπλα.</p>
+  <a class="btn btn--ghost btn--sm" href="{rel(d)}sysfixi-kolpou/">Σύγκριση</a></div>'''
+               if slug in ("anazoogonisi-kolpou", "laser-plastiki-kolpou") else "")
     aside = f'''{toc}
 <div class="panel"><h3>Με μια ματιά</h3><ul class="facts">{facts}</ul></div>
+{compare}
 <div class="panel"><h3>Αντιμετωπίζει</h3><ul class="card__chips" style="margin:0">{treats}</ul></div>
 {U.doctor_panel(d)}
 <div class="panel"><h3>Ταιριάζει σε εσάς;</h3>
@@ -466,7 +471,8 @@ def build_treatments_hub():
     <p class="eyebrow">Πέντε διαδρομές</p>
     <h1>Θεραπείες κοσμητικής γυναικολογίας</h1>
     <p class="lede">Από μια ανώδυνη συνεδρία laser στο ιατρείο μέχρι πλήρη ανάπλαση του κόλπου
-      στο χειρουργείο. Δείτε τις δίπλα δίπλα και κρατήστε όσες σας αφορούν.</p>
+      στο χειρουργείο. Δείτε τις δίπλα δίπλα και κρατήστε όσες σας αφορούν. Για τη χαλάρωση:
+      <a href="../sysfixi-kolpou/">σύσφιξη κόλπου με laser ή κολποπλαστική;</a></p>
     <div class="hero__acts">
       <a class="btn btn--cta" href="#compare">Σύγκριση</a>
       <button class="btn btn--glass" type="button" data-open="scanner">Ποια μου ταιριάζει;</button>
@@ -509,7 +515,7 @@ def condition_ld(c):
 def build_condition(c):
     d, slug = 2, c["slug"]
     body_html, faq_title, faq_pairs = C.prose(c["legacy"], d)
-    body_html = anchor_headings(body_html)
+    body_html = anchor_headings(question_headings(body_html))
     faq_html, faq_ld = U.faq_block(faq_title or f"Συχνές ερωτήσεις: {c['title']}",
                                    merged_faq(faq_pairs, c))
     crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Παθήσεις", "pathiseis/"), (c["title"], None)], d)
@@ -565,6 +571,109 @@ def build_condition(c):
           hue=U.hue(slug), kw=c["lead"] + " " + c["plain"])
 
 
+def build_sysfixi():
+    """«Σύσφιξη κόλπου»: σύγκριση laser στο ιατρείο και κολποπλαστικής. Όλα τα στοιχεία
+    έρχονται από τα TREATMENTS και από τα κείμενα του ιατρείου (plastiki-kolpou-*)."""
+    d, path = 1, "sysfixi-kolpou/"
+    a, b = TREATS["anazoogonisi-kolpou"], TREATS["laser-plastiki-kolpou"]
+    title = "Σύσφιξη κόλπου: με laser ή κολποπλαστική | LVRI Athens"
+    desc = ("Σύσφιξη κόλπου στην Αθήνα: ανώδυνο laser στο ιατρείο χωρίς ανάρρωση ή κολποπλαστική με laser "
+            "σε χειρουργείο ημέρας. Σύγκριση, αίτια, κόστος. Τηλ. 210 7609109.")
+    crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Θεραπείες", "therapeies/"), ("Σύσφιξη κόλπου", None)], d)
+    rows = [("Πού γίνεται", "setting"), ("Αναισθησία", "anesthesia"), ("Συνεδρίες", "sessions"),
+            ("Διάρκεια", "duration"), ("Ανάρρωση", "recovery")]
+    table = "".join(f"<tr><th scope=\"row\">{k}</th><td>{html.escape(a['matrix'][f])}</td>"
+                    f"<td>{html.escape(b['matrix'][f])}</td></tr>" for k, f in rows)
+    table += (f"<tr><th scope=\"row\">Για</th><td>{html.escape(', '.join(a['treats']))}</td>"
+              f"<td>{html.escape(', '.join(b['treats']))}</td></tr>")
+    who_a = _faq_answer(a, "σε ποιες") or ""
+    who_b = _faq_answer(b, "σε ποιες") or ""
+    quick = quick_box("Σύσφιξη κόλπου", [
+        ("Τι είναι", "Η αποκατάσταση του τόνου και της ελαστικότητας του κόλπου όταν έχει χαλαρώσει, "
+                     "συνήθως μετά από τοκετούς ή με την ηλικία."),
+        ("Χωρίς χειρουργείο", f'<a href="{rel(d)}therapeies/anazoogonisi-kolpou/">Laser κόλπου</a> στο ιατρείο: '
+                              f"{html.escape(a['matrix']['sessions'].lower())}, {html.escape(a['matrix']['duration'].lower())}, "
+                              f"{html.escape(a['matrix']['recovery'].lower())}. Για ήπια χαλάρωση."),
+        ("Με χειρουργείο", f'<a href="{rel(d)}therapeies/laser-plastiki-kolpou/">Κολποπλαστική με laser</a> (LVR®): '
+                           f"{html.escape(b['matrix']['setting'].lower())}, χωρίς αφαίρεση ραμμάτων. "
+                           "Για ανατομική χαλάρωση."),
+        ("Ποια ταιριάζει", "Αποφασίζεται μετά την εξέταση, ανάλογα με τον βαθμό της χαλάρωσης."),
+        ("Κόστος", "Καθορίζεται μετά την εξέταση. "
+                   f'Ραντεβού εκτίμησης: <a href="tel:{SITE["phone_href"]}">{SITE["phone"]}</a>.'),
+    ])
+    faq_pairs = [(q, f"<p>{html.escape(x)}</p>") for q, x in [
+        ("Γίνεται σύσφιξη κόλπου χωρίς χειρουργείο;",
+         "Ναι. Το laser κόλπου (erbium laser) γίνεται στο ιατρείο, σε " + a["matrix"]["sessions"].lower()
+         + " των 15 λεπτών, χωρίς αναισθησία και χωρίς ανάρρωση. Απευθύνεται σε ήπια χαλάρωση, ξηρότητα και ατροφία."),
+        ("Ποια είναι η διαφορά από την κολποπλαστική;", _faq_answer(b, "διαφορά") or ""),
+        ("Σε ποιες γυναίκες απευθύνεται η σύσφιξη κόλπου;", who_b),
+        ("Ποιες γυναίκες κάνουν laser κόλπου;", who_a),
+        ("Πονάει η σύσφιξη κόλπου με laser;", _faq_answer(a, "πονάει") or ""),
+        ("Πότε επιστρέφω στην καθημερινότητα μετά την κολποπλαστική;", _faq_answer(b, "καθημερινότητα") or ""),
+        ("Κάθε πότε επαναλαμβάνεται το laser κόλπου;", _faq_answer(a, "κάθε πότε") or ""),
+        ("Πόσο κοστίζει η σύσφιξη κόλπου;", COST),
+    ] if x]
+    faq_html, faq_ld = U.faq_block("Συχνές ερωτήσεις για τη σύσφιξη κόλπου", faq_pairs)
+    body = f'''
+{U.hero_photo(b.get('image'), 'Σύσφιξη κόλπου', d)}
+  <div class="wrap">{crumb}
+    <p class="eyebrow">Θεραπείες</p>
+    <h1>Σύσφιξη κόλπου: με laser χωρίς χειρουργείο ή με κολποπλαστική</h1>
+    <p class="lede">Δύο δρόμοι για τη χαλάρωση του κόλπου: ανώδυνο laser στο ιατρείο για την ήπια
+      χαλάρωση, ή κολποπλαστική με laser σε χειρουργείο ημέρας όταν η χαλάρωση είναι ανατομική.</p>
+    {reviewed_line(d)}
+    <div class="hero__acts">
+      <button class="btn btn--cta btn--lg" type="button" data-open="book" data-topic="Σύσφιξη κόλπου">Ζητήστε ραντεβού</button>
+      <a class="btn btn--glass btn--lg" href="tel:{SITE['phone_href']}">{U.I['phone']}{SITE['phone']}</a>
+    </div>
+  </div>
+</section>
+<main id="main"><div class="wrap doc">
+  <article class="doc__main prose">
+    {quick}
+    <h2 id="s1">Γιατί χαλαρώνει ο κόλπος;</h2>
+    <p>Η συχνότερη αρχική βλάβη που βιώνουν οι γυναίκες είναι η κολπική χαλάρωση: οι μύες του κόλπου
+      δεν ανταποκρίνονται όπως πριν κατά τη σεξουαλική επαφή. Η αιτία είναι κατά κανόνα ο φυσιολογικός
+      τοκετός. Κατά την έξοδο του εμβρύου μπορεί να σπάσει η κολπική περιτονία, ο λεπτός υμένας που
+      στηρίζει τα όργανα του κόλπου, και να ραγούν οι μύες του περινέου που αποτελούν το «πάτωμα» της λεκάνης.</p>
+    <p>Δεν αφήνει βλάβη κάθε τοκετός. Ένας επιπλεγμένος τοκετός, με κουτάλες ή βεντούζα και εκτεταμένες
+      ρήξεις, είναι πολύ πιθανότερο να τη δημιουργήσει. Λιγότερο συχνά η χαλάρωση αφορά γυναίκες που δεν
+      έχουν γεννήσει αλλά έχουν εκ κατασκευής χαλαρούς κολπικούς ιστούς. Με τα χρόνια και στην εμμηνόπαυση
+      ο κόλπος χάνει επίσης ελαστικότητα και κολλαγόνο.</p>
+    <h2 id="s2">Σύσφιξη κόλπου χωρίς χειρουργείο: laser στο ιατρείο</h2>
+    <p>{html.escape(a['lead'])} {html.escape(who_a)}</p>
+    <p><a href="{rel(d)}therapeies/anazoogonisi-kolpou/">Όλα για το laser κόλπου</a></p>
+    <h2 id="s3">Σύσφιξη κόλπου με κολποπλαστική (LVR®)</h2>
+    <p>{html.escape(_faq_answer(b, "τι είναι") or b['lead'])} {html.escape(who_b)}</p>
+    <p><a href="{rel(d)}therapeies/laser-plastiki-kolpou/">Όλα για την κολποπλαστική με laser</a></p>
+    <h2 id="s4">Laser κόλπου ή κολποπλαστική: σύγκριση</h2>
+    <div class="sx-wrap"><table class="sx-table">
+      <thead><tr><th></th><th scope="col">Laser κόλπου</th><th scope="col">Κολποπλαστική με laser</th></tr></thead>
+      <tbody>{table}</tbody></table></div>
+    <h2 id="s5">Ποια μέθοδος μου ταιριάζει;</h2>
+    <p>Η ήπια χαλάρωση, ιδίως όταν συνοδεύεται από ξηρότητα ή ήπια ακράτεια, αντιμετωπίζεται συνήθως με
+      laser στο ιατρείο. Όταν η χαλάρωση είναι ανατομική ή υπάρχει πρόπτωση, χρειάζεται χειρουργική
+      αποκατάσταση: η κολποπλαστική με laser ή, στις βαρύτερες κήλες, η
+      <a href="{rel(d)}therapeies/xeirourgiki-pyelikou-edafous/">χειρουργική πυελικού εδάφους</a>.
+      Η τελική επιλογή γίνεται μετά την εξέταση από τον γιατρό.</p>
+  </article>
+  <aside class="doc__aside">{U.doctor_panel(d)}
+<div class="panel"><h3>Δεν είστε σίγουρη;</h3><p>Ο σαρωτής συμπτωμάτων βάζει λέξεις σε αυτό που νιώθετε.</p>
+  <button class="btn btn--cta btn--sm" type="button" data-open="scanner">Ξεκινήστε</button></div></aside>
+</div>
+{faq_html}
+{U.cta_band(d)}
+</main>'''
+    ld = webpage_ld(path, title, desc, image=b.get("image"),
+                    about=[{"@id": f"{SITE['domain']}/therapeies/anazoogonisi-kolpou/#procedure"},
+                           {"@id": f"{SITE['domain']}/therapeies/laser-plastiki-kolpou/#procedure"}])
+    write(path + "index.html", shell(path=path, title=title, desc=desc, depth=d, body=body,
+          active="therapeies", image=b.get("image"), jsonld=[crumb_ld, ld] + ([faq_ld] if faq_ld else [])))
+    register(path, prio="0.9", image=b.get("image"))
+    index(path, title="Σύσφιξη κόλπου", desc="Laser ή κολποπλαστική: σύγκριση", kind="page",
+          kw="συσφιξη κολπου χαλαρωση κολποπλαστικη laser κολπου συγκριση")
+
+
 def build_conditions_hub():
     d = 1
     crumb, crumb_ld = U.crumbs([("Αρχική", ""), ("Παθήσεις", None)], d)
@@ -612,6 +721,15 @@ def build_toc(body_html):
         if txt:
             items += f'<li class="lvl{lvl}"><a href="#{hid}">{html.escape(txt)}</a></li>'
     return f'<nav class="toc"><h2>Σε αυτή τη σελίδα</h2><ol>{items}</ol></nav>' if items else ""
+
+
+def question_headings(body_html):
+    """Παλιές επικεφαλίδες («Κυστεοκήλη: Συμπτώματα») → ερωτήσεις, από το HEADINGS του data.py."""
+    def repl(m):
+        key = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", "", m.group(2)))).strip()
+        new = HEADINGS.get(key)
+        return f"<h{m.group(1)}>{html.escape(new)}</h{m.group(1)}>" if new else m.group(0)
+    return re.sub(r"<h([23])>(.*?)</h\1>", repl, body_html, flags=re.S)
 
 
 def anchor_headings(body_html):
@@ -1621,6 +1739,7 @@ def build_llms():
 """
     short = [head, "\n## Θεραπείες\n"]
     short += [f"- [{t['title']}]({D}/therapeies/{t['slug']}/): {t['lead']}" for t in TREATMENTS]
+    short += [f"- [Σύσφιξη κόλπου: laser ή κολποπλαστική]({D}/sysfixi-kolpou/): σύγκριση των δύο τρόπων σύσφιξης"]
     short += ["\n## Παθήσεις\n"]
     short += [f"- [{c['title']}]({D}/pathiseis/{c['slug']}/): {c['lead']}" for c in CONDITIONS]
     short += ["\n## Ο γιατρός και η κλινική\n",
@@ -1710,6 +1829,7 @@ def main():
     build_treatments_hub()
     for t in TREATMENTS:
         build_treatment(t)
+    build_sysfixi()
     build_conditions_hub()
     for c in CONDITIONS:
         build_condition(c)
