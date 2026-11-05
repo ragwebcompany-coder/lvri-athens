@@ -851,7 +851,8 @@ def video_ld(v):
             else "Ενημερωτικό βίντεο ή συνέντευξη")
     return {"@type": "VideoObject", "name": v["title"],
             "description": f"{what} από το κανάλι του Dr. Κωνσταντίνου Μυρίλλα: {v['title']}.",
-            "uploadDate": v["date"],
+            # Η Google θέλει ώρα και ζώνη ώρας· η ώρα ανεβάσματος δεν είναι γνωστή, μένει η ημερομηνία
+            "uploadDate": v["date"] if "T" in v["date"] else v["date"] + "T00:00:00+00:00",
             "duration": f"PT{v['secs'] // 60}M{v['secs'] % 60}S",
             "thumbnailUrl": f"https://i.ytimg.com/vi/{v['id']}/hqdefault.jpg",
             "embedUrl": f"https://www.youtube.com/embed/{v['id']}",
