@@ -872,3 +872,12 @@ kbd{font:500 .7rem/1 var(--text);padding:.25em .45em;border-radius:3px;backgroun
 /* Ιατρικός έλεγχος κάτω από τον υπότιτλο σε θεραπείες και παθήσεις */
 .reviewed{margin:.6rem 0 0;font-size:.85rem;color:#d4d4d4}
 .reviewed a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+
+/* «Με λίγα λόγια» στην αρχή θεραπειών και παθήσεων */
+.quick{border:1px solid var(--line,#333);border-radius:.75rem;padding:1.25rem 1.4rem;margin:0 0 2rem;background:rgba(255,255,255,.03)}
+.quick h2{font-size:1.15rem;margin:0 0 .9rem}
+.quick dl{margin:0;display:grid;gap:.55rem}
+.quick dl>div{display:grid;grid-template-columns:9.5rem 1fr;gap:.75rem}
+.quick dt{color:var(--dim);font-size:.9rem;font-weight:600}
+.quick dd{margin:0;font-size:.95rem}
+@media (max-width:560px){.quick dl>div{grid-template-columns:1fr;gap:.1rem}}

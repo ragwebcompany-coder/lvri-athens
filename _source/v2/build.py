@@ -307,6 +307,58 @@ def treatment_ld(t):
             "provider": {"@id": SITE["domain"] + "/#clinic"}}
 
 
+def _faq_answer(entry, *needles):
+    for q, a in entry.get("faq", []):
+        if any(n in q.lower() for n in needles):
+            return a
+    return None
+
+
+def quick_box(title, rows):
+    """«Με λίγα λόγια»: σύντομες απαντήσεις στην αρχή της σελίδας. Ό,τι γράφεται εδώ
+    βγαίνει από το data.py· είναι η μορφή που παραθέτουν οι μηχανές αναζήτησης και τα AI."""
+    items = "".join(f"<div><dt>{html.escape(k)}</dt><dd>{v}</dd></div>" for k, v in rows if v)
+    return (f'<section class="quick" aria-labelledby="quick-h"><h2 id="quick-h">Με λίγα λόγια: '
+            f'{html.escape(title)}</h2><dl>{items}</dl></section>')
+
+
+def treatment_quick(t, d):
+    m, surgical = t["matrix"], t["invasive"] == "surgical"
+    who = _faq_answer(t, "ποιες γυναίκες", "σε ποιες", "απευθύνεται")
+    where = ("Η επέμβαση γίνεται στο Μαιευτήριο ΡΕΑ· το ραντεβού και η εξέταση στο ιατρείο του Βύρωνα, "
+             f"{html.escape(SITE['address'])}." if surgical else
+             f"Στο ιατρείο του Βύρωνα, {html.escape(SITE['address'])}, Αθήνα.")
+    rows = [
+        ("Τι είναι", html.escape(t["lead"])),
+        ("Για ποιες", html.escape(who) if who else "Για " + html.escape(", ".join(t["treats"]).lower()) + "."),
+        ("Πώς γίνεται", html.escape(f"{m['setting']} · αναισθησία: {m['anesthesia'].lower()} · "
+                                    f"{m['sessions'].lower()} · {m['duration'][0].lower() + m['duration'][1:]}")),
+        ("Ανάρρωση", html.escape(m["recovery"])),
+        ("Πόνος", None if surgical else html.escape(m["pain"])),
+        ("Επανάληψη", html.escape(_faq_answer(t, "κάθε πότε", "επαναλαμβ") or "") or None),
+        ("Πού", where),
+        ("Κόστος", "Καθορίζεται μετά την εξέταση, ανάλογα με την τεχνική και την έκταση. "
+                   f'Ραντεβού εκτίμησης: <a href="tel:{SITE["phone_href"]}">{SITE["phone"]}</a>.'),
+    ]
+    return quick_box(t["title"], rows)
+
+
+def condition_quick(c, d):
+    n, unit = c["stat"]
+    treats = ", ".join(f'<a href="{rel(d)}therapeies/{s}/">{html.escape(TREATS[s]["title"])}</a>'
+                       for s in c["treatments"] if s in TREATS)
+    rows = [
+        ("Τι είναι", html.escape(c["lead"])),
+        ("Πώς το περιγράφουν οι ασθενείς", "«" + html.escape(c["plain"]) + "»"),
+        ("Πόσο συχνή", None if n in c["lead"] else html.escape(f"{n} {unit}")),
+        ("Γνωστή και ως", html.escape(", ".join(c.get("aka", []))) or None),
+        ("Θεραπείες", treats or None),
+        ("Πού", f"Ραντεβού και εξέταση στο ιατρείο του Βύρωνα, {html.escape(SITE['address'])}, Αθήνα. "
+                f'Τηλ. <a href="tel:{SITE["phone_href"]}">{SITE["phone"]}</a>.'),
+    ]
+    return quick_box(c["title"], rows)
+
+
 def related_articles(entry, depth, limit=6):
     tags = entry.get("tags") or []
     picks = [(s, tag) for s, tag in ARTICLES if tag in tags][:limit]
@@ -375,7 +427,7 @@ def build_treatment(t):
   </div>
 </section>
 <main id="main"><div class="wrap doc">
-  <article class="doc__main prose">{body_html}</article>
+  <article class="doc__main prose">{treatment_quick(t, d)}{body_html}</article>
   <aside class="doc__aside">{aside}</aside>
 </div>
 {U.row(rid="r-vid", title="Βίντεο", eyebrow="για τη θεραπεία", cards=vid_cards,
@@ -490,7 +542,7 @@ def build_condition(c):
   </div>
 </section>
 <main id="main"><div class="wrap doc">
-  <article class="doc__main prose">{body_html}</article>
+  <article class="doc__main prose">{condition_quick(c, d)}{body_html}</article>
   <aside class="doc__aside">{aside}</aside>
 </div>
 {faq_html}
